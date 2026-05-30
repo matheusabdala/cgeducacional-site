@@ -12,6 +12,23 @@ dist
 dist-ssr
 *.local
 
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+
+# Build / deps
+/build
+/coverage
+
+# Prisma
+# (schema é versionado; nada a ignorar por padrão)
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

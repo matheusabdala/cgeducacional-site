@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import { Button } from './Button';
 import { ShieldCheck, Search, CheckCircle, AlertCircle, FileCheck, User, Mail, Hash } from 'lucide-react';

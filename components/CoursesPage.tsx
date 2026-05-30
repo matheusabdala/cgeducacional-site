@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useMemo } from 'react';
 import { Course, CourseCategory, CourseLevel } from '../types';
 import { COURSES } from '../constants';

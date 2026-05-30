@@ -1,16 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { Header } from "./components/Header";
-import { Hero } from "./components/Hero";
-import { CourseCard } from "./components/CourseCard";
-import { Footer } from "./components/Footer";
-import { CoursesPage } from "./components/CoursesPage";
-import { CourseDetailsPage } from "./components/CourseDetailsPage";
-import { EJAPage } from "./components/EJAPage";
-import { GraduationPage } from "./components/GraduationPage";
-import { PostGraduationPage } from "./components/PostGraduationPage";
-import { CertificateValidationPage } from "./components/CertificateValidationPage";
-import { COURSES } from "./constants";
-import { Course, CourseCategory } from "./types";
+"use client";
+
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Hero } from "./Hero";
+import { CourseCard } from "./CourseCard";
+import { COURSES } from "@/constants";
+import { Course, CourseCategory } from "@/types";
+import { routeFor } from "@/lib/navigation";
 import {
     LayoutGrid,
     ListFilter,
@@ -25,41 +21,22 @@ import {
     Sparkles,
     BookOpen,
 } from "lucide-react";
-import { Button } from "./components/Button";
+import { Button } from "./Button";
 
-const App: React.FC = () => {
-    const [currentPage, setCurrentPage] = useState<
-        | "home"
-        | "courses"
-        | "eja"
-        | "graduation"
-        | "postgraduation"
-        | "certificate"
-    >("home");
-    const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+const HomePage: React.FC = () => {
+    const router = useRouter();
     const [filterCategory, setFilterCategory] = useState<
         CourseCategory | "Todos"
     >("Todos");
 
-    // Helper to scroll top on navigation
-    const handleNavigate = (
-        page:
-            | "home"
-            | "courses"
-            | "eja"
-            | "graduation"
-            | "postgraduation"
-            | "certificate",
-    ) => {
-        setCurrentPage(page);
-        setSelectedCourse(null); // Clear selected course to return to main view
-        window.scrollTo({ top: 0, behavior: "smooth" });
+    // Navegação via rotas reais do App Router.
+    const handleNavigate = (page: string) => {
+        router.push(routeFor(page));
     };
 
-    // Helper to open course details
+    // Abre a página de detalhes do curso.
     const handleViewCourse = (course: Course) => {
-        setSelectedCourse(course);
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        router.push(`/cursos/${course.id}`);
     };
 
     const filteredCoursesHome =
@@ -67,42 +44,8 @@ const App: React.FC = () => {
             ? COURSES
             : COURSES.filter((c) => c.category === filterCategory);
 
-    const categories = ["Todos", ...Object.values(CourseCategory)];
-
-    // Render the Main Content based on state
-    const renderContent = () => {
-        if (selectedCourse) {
-            return (
-                <CourseDetailsPage
-                    course={selectedCourse}
-                    onBack={() => setSelectedCourse(null)}
-                />
-            );
-        }
-
-        if (currentPage === "courses") {
-            return <CoursesPage onViewDetails={handleViewCourse} />;
-        }
-
-        if (currentPage === "eja") {
-            return <EJAPage onNavigate={handleNavigate} />;
-        }
-
-        if (currentPage === "graduation") {
-            return <GraduationPage />;
-        }
-
-        if (currentPage === "postgraduation") {
-            return <PostGraduationPage />;
-        }
-
-        if (currentPage === "certificate") {
-            return <CertificateValidationPage />;
-        }
-
-        // Default: Home
-        return (
-            <>
+    return (
+        <>
                 <Hero />
 
                 {/* Quick Navigation / Pillars */}
@@ -566,24 +509,8 @@ const App: React.FC = () => {
                         </div>
                     </div>
                 </section>
-            </>
-        );
-    };
-
-    return (
-        <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
-            <Header
-                onNavigate={(page) => handleNavigate(page as any)}
-                currentPage={currentPage}
-            />
-
-            <main className="flex-1">{renderContent()}</main>
-
-            <Footer />
-
-            {/* Note: CourseDetailModal is removed as we now use CourseDetailsPage */}
-        </div>
+        </>
     );
 };
 
-export default App;
+export default HomePage;

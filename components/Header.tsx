@@ -1,90 +1,89 @@
-import React from 'react';
-import { Button } from './Button';
-import { createWhatsAppLink } from '../constants';
-import { Brain, Menu, Search } from 'lucide-react';
+"use client";
 
-interface HeaderProps {
-  onNavigate: (page: string) => void;
-  currentPage: string;
-}
+import React, { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { GraduationCap, Menu, X } from "lucide-react";
+import { Button } from "./Button";
+import { NAV_ITEMS } from "@/lib/navigation";
 
-export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
+export const Header: React.FC = () => {
+  const pathname = usePathname();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-      <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
-        <div 
-          className="flex items-center gap-2 cursor-pointer group"
-          onClick={() => onNavigate('home')}
-        >
-          <div className="w-8 h-8 rounded-lg bg-cg-600 flex items-center justify-center text-white transition-transform group-hover:scale-105">
-            <Brain size={20} />
+    <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-cg-600 text-white">
+            <GraduationCap size={22} />
           </div>
-          <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cg-700 to-cg-500">
+          <span className="text-xl font-bold tracking-tight text-slate-900">
             CG Educacional
           </span>
-        </div>
+        </Link>
 
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
-          <button 
-             onClick={() => onNavigate('eja')}
-             className={`transition-colors hover:text-cg-600 ${currentPage === 'eja' ? 'text-cg-600 font-bold' : ''}`}
-          >
-            EJA
-          </button>
-
-          <button 
-             onClick={() => onNavigate('graduation')}
-             className={`transition-colors hover:text-cg-600 ${currentPage === 'graduation' ? 'text-cg-600 font-bold' : ''}`}
-          >
-            Graduação
-          </button>
-
-          <button 
-             onClick={() => onNavigate('postgraduation')}
-             className={`transition-colors hover:text-cg-600 ${currentPage === 'postgraduation' ? 'text-cg-600 font-bold' : ''}`}
-          >
-            Pós-Graduação
-          </button>
-          
-          <button 
-            onClick={() => onNavigate('courses')}
-            className={`transition-colors hover:text-cg-600 ${currentPage === 'courses' ? 'text-cg-600 font-bold' : ''}`}
-          >
-            Cursos Livres
-          </button>
-
-          <button 
-            onClick={() => onNavigate('certificate')}
-            className={`transition-colors hover:text-cg-600 ${currentPage === 'certificate' ? 'text-cg-600 font-bold' : ''}`}
-          >
-            Validar Certificado
-          </button>
+        {/* Desktop Nav */}
+        <nav className="hidden lg:flex items-center gap-1">
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                isActive(item.href)
+                  ? "text-cg-600 bg-cg-50"
+                  : "text-slate-600 hover:text-cg-600 hover:bg-gray-50"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
 
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-            <input
-              type="search"
-              placeholder="Buscar..."
-              className="h-9 w-48 rounded-md border border-gray-200 bg-gray-50 pl-9 pr-4 text-sm outline-none focus:border-cg-500 focus:ring-1 focus:ring-cg-500 transition-all focus:w-64"
-            />
-          </div>
-          <Button variant="ghost" size="sm" className="hidden md:flex">
-            Entrar
-          </Button>
-          <Button 
-            variant="primary" 
-            size="sm" 
-            onClick={() => window.open(createWhatsAppLink("Olá, gostaria de começar agora."), "_blank")}
+        {/* CTA + Mobile Toggle */}
+        <div className="flex items-center gap-2">
+          <Link href="/validar-certificado" className="hidden lg:block">
+            <Button variant="ghost" size="sm">
+              Área do Aluno
+            </Button>
+          </Link>
+          <Link href="/cursos" className="hidden sm:flex">
+            <Button size="sm">Matricule-se</Button>
+          </Link>
+          <button
+            className="lg:hidden p-2"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Abrir menu"
           >
-            Começar Agora
-          </Button>
-          <button className="md:hidden text-gray-600">
-            <Menu size={24} />
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
+
+      {/* Mobile Nav */}
+      {isMenuOpen && (
+        <nav className="lg:hidden border-t border-gray-100 bg-white">
+          <div className="container mx-auto px-4 py-3 flex flex-col gap-1">
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                onClick={() => setIsMenuOpen(false)}
+                className={`px-3 py-2 text-sm font-medium rounded-md text-left transition-colors ${
+                  isActive(item.href)
+                    ? "text-cg-600 bg-cg-50"
+                    : "text-slate-600 hover:bg-gray-50"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </nav>
+      )}
     </header>
   );
 };
