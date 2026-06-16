@@ -27,7 +27,9 @@ ARG DATABASE_URL
 ARG DIRECT_URL
 ENV DATABASE_URL=$DATABASE_URL
 ENV DIRECT_URL=$DIRECT_URL
-RUN npx prisma migrate deploy
+# Não-fatal: se o banco não estiver acessível, o build segue e a landing sobe;
+# a migration aplica no próximo build com a connection string correta.
+RUN npx prisma migrate deploy || echo "[build] AVISO: migrate deploy nao aplicado (verifique DATABASE_URL/DIRECT_URL)"
 
 RUN npm run build
 
