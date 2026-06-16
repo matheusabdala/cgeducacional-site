@@ -2,26 +2,153 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Design system — "CG Modern"
+ * Linguagem visual do prompt-design (near-black, luz ambiente, glows, sombras
+ * em camadas) com o azul institucional CG (cg-*) como acento. Dois temas:
+ *   :root  → claro (padrão, acolhedor p/ educação)
+ *   .dark  → escuro moderno (estilo Linear)
+ * Tokens em HSL (compatível com shadcn/ui — permite modificador de opacidade).
+ */
+
 @layer base {
   :root {
-    --radius: 0.5rem;
+    /* Superfícies */
+    --background: 210 20% 98%; /* #F7F8FA — claro suave, nunca branco puro */
+    --foreground: 222 24% 12%; /* near-black */
+    --card: 0 0% 100%;
+    --card-foreground: 222 24% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 24% 12%;
+
+    /* Marca — azul institucional CG (cg-600) */
+    --primary: 204 100% 38%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Destaque secundário — teal */
+    --brand-teal: 173 80% 36%;
+    --brand-teal-foreground: 0 0% 100%;
+
+    /* Neutros */
+    --secondary: 210 16% 95%;
+    --secondary-foreground: 222 20% 20%;
+    --muted: 210 16% 95%;
+    --muted-foreground: 215 14% 40%;
+    --accent: 210 16% 93%; /* hover sutil (semântica shadcn) */
+    --accent-foreground: 222 20% 20%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Linhas e foco */
+    --border: 214 18% 90%;
+    --input: 214 18% 88%;
+    --ring: 204 100% 38%;
+
+    /* Luz ambiente / glow (RGB separado p/ rgba(var(--glow)/.x)) */
+    --glow: 12 150 230;
+
+    --radius: 0.75rem;
   }
 
-  body {
-    @apply bg-slate-50 text-slate-900 antialiased;
-    font-family:
-      ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
-      Arial, sans-serif;
+  .dark {
+    /* Superfícies — near-black do prompt (#050506 / #0a0a0c) */
+    --background: 240 10% 3%;
+    --foreground: 240 6% 93%; /* #EDEDEF */
+    --card: 240 9% 5%;
+    --card-foreground: 240 6% 93%;
+    --popover: 240 10% 4%;
+    --popover-foreground: 240 6% 93%;
+
+    /* Marca — cg um tom mais claro p/ contraste no escuro (cg-500) */
+    --primary: 202 90% 47%;
+    --primary-foreground: 0 0% 100%;
+
+    --brand-teal: 172 70% 45%;
+    --brand-teal-foreground: 240 10% 4%;
+
+    --secondary: 240 6% 10%;
+    --secondary-foreground: 240 6% 93%;
+    --muted: 240 6% 11%;
+    --muted-foreground: 218 8% 60%; /* #8A8F98 */
+    --accent: 240 6% 13%;
+    --accent-foreground: 240 6% 93%;
+
+    --destructive: 0 62% 47%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 6% 15%;
+    --input: 240 6% 17%;
+    --ring: 202 90% 47%;
+
+    --glow: 40 170 240;
   }
 }
 
-/* Utilitário usado na landing atual (esconde scrollbar em carrosséis). */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+  }
+
+  /* Tipografia: títulos com tracking apertado (estilo Linear) */
+  h1,
+  h2,
+  h3 {
+    @apply tracking-tight;
+  }
+}
+
 @layer utilities {
+  /* Esconde scrollbar (carrosséis da landing) */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Texto com gradiente (headline) — adapta a cada tema via currentColor */
+  .text-gradient {
+    @apply bg-gradient-to-b from-foreground to-foreground/60 bg-clip-text text-transparent;
+  }
+
+  /* Overlay de grade técnica (sutil) */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, hsl(var(--foreground) / 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--foreground) / 0.04) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  /* Card de vidro (glass) — superfície translúcida do prompt */
+  .glass {
+    @apply border border-border bg-card/70 backdrop-blur-xl;
+  }
+
+  /* Glow de acento p/ CTAs e blobs */
+  .glow-accent {
+    box-shadow:
+      0 0 0 1px hsl(var(--primary) / 0.4),
+      0 4px 16px rgb(var(--glow) / 0.35),
+      inset 0 1px 0 0 rgb(255 255 255 / 0.18);
+  }
+}
+
+/* Respeita usuários que preferem menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
   }
 }

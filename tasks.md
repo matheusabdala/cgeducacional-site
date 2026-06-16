@@ -9,39 +9,43 @@ Convenções: código em inglês, UI em pt-BR, commits pequenos por subtarefa, P
 
 ## Fase 0 — Segurança e higiene (fazer primeiro)
 
-- [ ] **Rotacionar o `COOLIFY_APIKEY`** no Coolify (a chave atual está exposta no `.env`).
-- [ ] Adicionar `.env` ao `.gitignore`; usar `.env.local` para segredos.
-- [ ] Conferir histórico git: se `.env` foi commitado, remover do tracking (`git rm --cached .env`) e considerar limpeza de histórico.
-- [ ] Criar `.env.example` documentando todas as variáveis (sem valores).
+- [ ] **Rotacionar o `COOLIFY_APIKEY`** no Coolify (boa prática; o `.env` nunca foi commitado, mas a chave é root).
+- [x] Adicionar `.env` ao `.gitignore`. (`.env*` ignorado, exceto `.env.example`.)
+- [x] Conferir histórico git: `.env` **não** estava rastreado (nunca commitado). OK.
+- [x] Criar `.env.example` documentando todas as variáveis (sem valores).
 
 ---
 
 ## Fase 1 — Fundação Next.js (migração in-place)
 
-- [ ] Criar branch `feat/nextjs-migration`.
-- [ ] Inicializar **Next.js 15** (App Router, TypeScript, ESLint) na raiz, convivendo com os arquivos atuais durante a transição.
-- [ ] Configurar **Tailwind** + paleta `cg-*`/`teal-*` (portar do design atual).
-- [ ] Instalar e inicializar **shadcn/ui** (button, input, card, dialog, dropdown, toast, form, tabs, avatar, badge).
-- [ ] Ajustar `tsconfig` (alias `@/*`), estrutura de pastas (`app/`, `components/`, `lib/`, `server/`).
-- [ ] Configurar build/start para **Coolify** (Dockerfile ou Nixpacks; `output: 'standalone'` no `next.config`).
-- [ ] Deploy de validação no Coolify (página em branco já no ar).
+- [x] Criar branch `feat/nextjs-migration`.
+- [x] Inicializar **Next.js 15** (App Router, TypeScript, ESLint) na raiz, convivendo com os arquivos atuais durante a transição.
+- [x] Configurar **Tailwind** + paleta `cg-*`/`teal-*` + **design system "CG Modern"** (tokens claro/escuro, fonte Inter, fundo ambiente, glows). Ver Decisões.
+- [x] Instalar e inicializar **shadcn/ui** — base + `button`, `card`, `badge`, `input` criados (`components.json` + `cn`). `dialog`, `dropdown`, `toast`, `form`, `tabs`, `avatar` ficam para quando a tela precisar (`npx shadcn add`).
+- [x] Ajustar `tsconfig` (alias `@/*`) + estrutura `app/` `components/` `components/ui/` `lib/`. (`server/` entra na Fase 4.)
+- [x] Configurar build/start para **Coolify** (Dockerfile + `output: 'standalone'` no `next.config`).
+- [ ] Deploy de validação no Coolify (página em branco já no ar). _(passo manual no painel Coolify)_
 
 ## Fase 2 — Landing institucional (porte do que já existe)
 
-- [ ] Portar componentes atuais (`Header`, `Hero`, `Footer`, `CourseCard`, páginas EJA/Graduação/Pós/Cursos/Certificado) para o App Router.
-- [ ] Converter navegação por `useState` em **rotas reais** (`/`, `/cursos`, `/eja`, `/graduacao`, `/pos-graduacao`, `/validar-certificado`).
-- [ ] Mover dados de `constants.ts` para fonte de dados temporária (depois vem do banco).
-- [ ] Manter assistente Gemini como Client Component opcional.
+- [x] Portar componentes atuais (`Header`, `Hero`, `Footer`, `CourseCard`, páginas EJA/Graduação/Pós/Cursos/Certificado) para o App Router — **reestilizados no design system claro/escuro**.
+- [x] Converter navegação por `useState` em **rotas reais** (`/`, `/cursos`, `/eja`, `/graduacao`, `/pos-graduacao`, `/validar-certificado`).
+- [x] Mover dados de `constants.ts` para fonte de dados temporária (`constants.ts` é a fonte temporária; depois vem do banco).
+- [ ] Manter assistente Gemini como Client Component opcional. _(ainda não religado — `services/` vazio; trazer do histórico Vite quando for ativar)_
 
 ## Fase 3 — Dados e Auth
 
-- [ ] Criar projeto **Supabase Cloud**; configurar env (`DATABASE_URL`, `SUPABASE_URL`, anon/service keys).
-- [ ] Modelar **Prisma** schema (User, Course, Module, Lesson, Enrollment, LessonProgress, Certificate) + enums.
-- [ ] Rodar primeira migration; criar seed com os cursos atuais.
-- [ ] Configurar **Supabase Auth**: email/senha + **OAuth Google**.
-- [ ] Políticas **RLS**: aluno só lê conteúdo de cursos em que tem `Enrollment`; instructor/admin gerenciam o que criam.
-- [ ] Helpers de sessão (server) + middleware de proteção de rotas por role.
-- [ ] Páginas de **login / cadastro / recuperação de senha** (shadcn forms + Zod).
+> **Código da Fase 3 pronto e buildando.** Os passos que dependem de credenciais
+> reais (criar projeto, rodar migration, aplicar RLS, habilitar provedores) estão
+> no runbook **`docs/fase-3-setup.md`**.
+
+- [ ] Criar projeto **Supabase Cloud**; configurar env (`DATABASE_URL`, `DIRECT_URL`, `SUPABASE_URL`, anon/service keys). _(manual — `.env.example` e runbook prontos)_
+- [x] Modelar **Prisma** schema (User, Course, Module, Lesson, Enrollment, LessonProgress, Certificate) + enums (`Role`, `CourseLevel`, `CourseCategory`, `VideoProvider`). `prisma generate` ✓.
+- [x] Seed (`prisma/seed.ts`) a partir de `constants.ts` (instrutores + cursos + módulos + aulas). _Rodar `npm run db:migrate` + `npm run db:seed` após criar o projeto._
+- [x] **Supabase Auth** (código): server actions de email/senha + **OAuth Google**, callback (`/auth/callback`), `ensureProfile`. _Habilitar provedores no painel (runbook)._
+- [x] Políticas **RLS** escritas em `prisma/rls.sql` (helpers `is_admin`/`is_enrolled`; aluno lê via `Enrollment`; instructor/admin gerenciam o próprio). _Aplicar no SQL Editor (runbook)._
+- [x] Helpers de sessão (`lib/auth.ts`: `getAuthUser`/`requireUser`/`requireRole`) + middleware protegendo `/aprender` e `/admin`.
+- [x] Páginas de **login / cadastro / recuperação de senha** (react-hook-form + Zod + shadcn), com login Google e fluxo de e-mail.
 
 ## Fase 4 — Camada de mídia (modular, baixo custo)
 
@@ -105,6 +109,7 @@ Meta: começar só com **Google Drive (padrão, grátis)** + **YouTube unlisted 
 
 ## Decisões registradas
 
+- **Design system "CG Modern"**: linguagem visual do `prompt-design.xml` (near-black, luz ambiente em camadas, glows, sombras multi-camada, micro-interações expo-out 200–300ms) com o **azul institucional CG (`cg-*`) como acento** (não o índigo do prompt) + teal como destaque. **Dois temas**: claro por padrão (acolhedor p/ educação) + escuro moderno, alternáveis via toggle (`next-themes`). Tokens em HSL via CSS vars (compatível shadcn/ui). Fonte **Inter**.
 - **Supabase Cloud** (não self-host no Coolify, por enquanto).
 - **Migração in-place** em nova branch (preserva projeto Coolify + domínio).
 - **Vídeo**: **Google Drive (padrão, grátis)** + **YouTube unlisted (opção no painel)**, atrás de `VideoProvider`. Operação de baixo custo agora; hosts pagos (Bunny/Cloudflare/Mux) ficam como upgrade modular (Fase 4.1).

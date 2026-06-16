@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Button } from './Button';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { ShieldCheck, Search, CheckCircle, AlertCircle, FileCheck, User, Mail, Hash } from 'lucide-react';
 
 interface CertificateResult {
@@ -70,7 +72,7 @@ export const CertificateValidationPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-secondary/30">
       {/* Hero / Header Section */}
       <section className="bg-cg-900 py-16 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
@@ -89,12 +91,12 @@ export const CertificateValidationPage: React.FC = () => {
       {/* Validation Form Section */}
       <section className="py-12 -mt-10 relative z-20 px-4">
         <div className="container mx-auto max-w-2xl">
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+          <div className="rounded-2xl border border-border bg-card shadow-card p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="col-span-1">
-                  <label htmlFor="tipoBusca" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="tipoBusca" className="block text-sm font-medium text-foreground mb-2">
                     Tipo de Busca
                   </label>
                   <div className="relative">
@@ -102,7 +104,7 @@ export const CertificateValidationPage: React.FC = () => {
                         id="tipoBusca"
                         value={searchType}
                         onChange={handleSearchTypeChange}
-                        className="block w-full pl-3 pr-10 py-4 border border-gray-300 rounded-xl focus:ring-cg-500 focus:border-cg-500 text-base bg-white"
+                        className="block w-full pl-3 pr-10 py-4 border border-input rounded-xl bg-card text-foreground text-base focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/40"
                       >
                         <option value="cpf">CPF</option>
                         <option value="id">Código do Certificado</option>
@@ -111,21 +113,21 @@ export const CertificateValidationPage: React.FC = () => {
                 </div>
 
                 <div className="col-span-1 md:col-span-2">
-                  <label htmlFor="valorBusca" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="valorBusca" className="block text-sm font-medium text-foreground mb-2">
                     {searchType === 'cpf' ? 'CPF do Aluno' : 'Código de Autenticidade'}
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                       {searchType === 'cpf' ? (
-                        <User className="h-5 w-5 text-gray-400" />
+                        <User className="h-5 w-5 text-muted-foreground" />
                       ) : (
-                        <Hash className="h-5 w-5 text-gray-400" />
+                        <Hash className="h-5 w-5 text-muted-foreground" />
                       )}
                     </div>
-                    <input
+                    <Input
                       type="text"
                       id="valorBusca"
-                      className="block w-full pl-10 pr-3 py-4 border border-gray-300 rounded-xl focus:ring-cg-500 focus:border-cg-500 text-lg placeholder-gray-400"
+                      className="h-auto rounded-xl pl-10 pr-3 py-4 text-lg"
                       placeholder={searchType === 'cpf' ? "000.000.000-00" : "Ex: ABC-123-XYZ"}
                       value={searchValue}
                       onChange={handleInputChange}
@@ -136,9 +138,11 @@ export const CertificateValidationPage: React.FC = () => {
                 </div>
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full text-lg h-12 shadow-lg shadow-cg-500/20"
+              <Button
+                type="submit"
+                variant="glow"
+                size="lg"
+                className="w-full text-lg"
                 disabled={status === 'loading'}
               >
                 {status === 'loading' ? 'Verificando...' : 'Validar'}
@@ -154,25 +158,25 @@ export const CertificateValidationPage: React.FC = () => {
           
           {status === 'success' && results.length > 0 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <div className="bg-yellow-50 text-yellow-800 px-4 py-2 rounded-full text-sm font-medium text-center mb-6 w-fit mx-auto border border-yellow-100 animate-pulse">
+               <Badge className="mb-6 w-fit mx-auto border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm text-amber-600 dark:text-amber-400 animate-pulse">
                   Clique no nome para fazer download do Certificado
-               </div>
+               </Badge>
 
               {results.map((res, index) => (
-                <div key={index} className="bg-white rounded-2xl shadow-sm border border-green-100 p-6 flex flex-col items-center text-center hover:shadow-md transition-shadow">
+                <div key={index} className="rounded-2xl border border-emerald-500/30 bg-card shadow-card p-6 flex flex-col items-center text-center hover:shadow-card-hover transition-shadow">
                   <div className="mb-2">
-                    <CheckCircle className="text-green-500 h-8 w-8 mx-auto mb-2" />
-                    <a 
-                      href={res.validacao} 
-                      target="_blank" 
+                    <CheckCircle className="text-emerald-500 h-8 w-8 mx-auto mb-2" />
+                    <a
+                      href={res.validacao}
+                      target="_blank"
                       rel="noopener noreferrer"
-                      className="text-lg font-bold text-cg-700 hover:text-cg-900 hover:underline flex items-center justify-center gap-2"
+                      className="text-lg font-bold text-primary hover:text-primary/80 hover:underline flex items-center justify-center gap-2"
                     >
                       Aluno: {res.nome_aluno}
                       <span className="text-xs">🟢</span>
                     </a>
                   </div>
-                  <div className="text-gray-600 font-medium flex items-center gap-2">
+                  <div className="text-muted-foreground font-medium flex items-center gap-2">
                     <span>⏩</span> {res.nome_curso}
                   </div>
                 </div>
@@ -181,12 +185,12 @@ export const CertificateValidationPage: React.FC = () => {
           )}
 
           {status === 'error' && (
-            <div className="bg-white rounded-2xl shadow-sm border border-red-100 p-8 animate-in fade-in slide-in-from-bottom-4 duration-500 text-center">
-              <div className="flex flex-col items-center gap-4 text-red-600 mb-4">
+            <div className="rounded-2xl border border-destructive/30 bg-destructive/10 shadow-card p-8 animate-in fade-in slide-in-from-bottom-4 duration-500 text-center">
+              <div className="flex flex-col items-center gap-4 text-destructive mb-4">
                 <AlertCircle size={48} />
                 <h3 className="text-xl font-bold">Certificado Não Encontrado</h3>
               </div>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Código do certificado ou CPF não encontrado em nossa base de dados.
                 <br />Verifique se digitou corretamente.
               </p>

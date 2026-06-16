@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Build enxuto para deploy em container (Coolify).
   output: "standalone",
+  // Mantém o Prisma fora do bundle (carregado de node_modules + engine).
+  serverExternalPackages: ["@prisma/client", "prisma"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
