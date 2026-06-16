@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, Check } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { createLesson, updateLesson } from "@/app/admin/cursos/actions";
+import { uploadFileWithProgress } from "@/lib/upload";
 
 type LessonData = {
   id: string;
@@ -53,7 +54,7 @@ export function LessonDialog({
   const [title, setTitle] = React.useState(lesson?.title ?? "");
   const [description, setDescription] = React.useState(lesson?.description ?? "");
   const [durationMin, setDurationMin] = React.useState(
-    lesson?.durationSeconds ? Math.round(lesson.durationSeconds / 60) : "",
+    lesson?.durationSeconds ? String(Math.round(lesson.durationSeconds / 60)) : "",
   );
   const [provider, setProvider] = React.useState<"drive" | "youtube">(
     lesson?.videoProvider ?? "drive",
@@ -72,16 +73,6 @@ export function LessonDialog({
       setVideoRef("");
       setMaterialFileId("");
     }
-  }
-
-  async function uploadTo(setter: (id: string) => void, file: File) {
-    const body = new FormData();
-    body.append("file", file);
-    const res = await fetch("/api/admin/upload", { method: "POST", body });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error ?? "Falha no upload");
-    setter(json.id);
-    return json.name as string;
   }
 
   async function onSubmit() {
@@ -173,59 +164,29 @@ export function LessonDialog({
             </Select>
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="lesson-ref">
-              {provider === "drive" ? "ID do arquivo no Drive" : "ID do vídeo no YouTube"}
-            </Label>
-            <div className="flex gap-2">
-              <Input
-                id="lesson-ref"
-                value={videoRef}
-                onChange={(e) => setVideoRef(e.target.value)}
-                placeholder={provider === "drive" ? "file id" : "videoId"}
-              />
-              {provider === "drive" && (
-                <UploadButton
-                  label="Enviar vídeo"
-                  accept="video/*"
-                  onUpload={(f) =>
-                    uploadTo(setVideoRef, f).then((name) =>
-                      toast.success(`Vídeo enviado: ${name}`),
-                    )
-                  }
-                />
-              )}
-            </div>
-          </div>
+          <UploadField
+            label={provider === "drive" ? "ID do arquivo no Drive" : "ID do vídeo no YouTube"}
+            value={videoRef}
+            onChange={setVideoRef}
+            placeholder={provider === "drive" ? "file id" : "videoId"}
+            uploadable={provider === "drive"}
+            accept="video/*"
+            uploadLabel="Enviar vídeo"
+          />
 
-          <div className="space-y-1.5">
-            <Label htmlFor="lesson-material">Material para download (opcional)</Label>
-            <div className="flex gap-2">
-              <Input
-                id="lesson-material"
-                value={materialFileId}
-                onChange={(e) => setMaterialFileId(e.target.value)}
-                placeholder="ID do arquivo no Drive"
-              />
-              <UploadButton
-                label="Enviar material"
-                accept=".pdf,.ppt,.pptx,.doc,.docx,.zip"
-                onUpload={(f) =>
-                  uploadTo(setMaterialFileId, f).then((name) =>
-                    toast.success(`Material enviado: ${name}`),
-                  )
-                }
-              />
-            </div>
-          </div>
+          <UploadField
+            label="Material para download (opcional)"
+            value={materialFileId}
+            onChange={setMaterialFileId}
+            placeholder="ID do arquivo no Drive"
+            uploadable
+            accept=".pdf,.ppt,.pptx,.doc,.docx,.zip"
+            uploadLabel="Enviar material"
+          />
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => setOpen(false)}
-            disabled={saving}
-          >
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
             Cancelar
           </Button>
           <Button onClick={onSubmit} disabled={saving}>
@@ -237,55 +198,104 @@ export function LessonDialog({
   );
 }
 
-function UploadButton({
+function UploadField({
   label,
+  value,
+  onChange,
+  placeholder,
+  uploadable,
   accept,
-  onUpload,
+  uploadLabel,
 }: {
   label: string;
+  value: string;
+  onChange: (id: string) => void;
+  placeholder: string;
+  uploadable: boolean;
   accept: string;
-  onUpload: (file: File) => Promise<unknown>;
+  uploadLabel: string;
 }) {
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const [busy, setBusy] = React.useState(false);
+  const [pct, setPct] = React.useState<number | null>(null);
+  const [done, setDone] = React.useState(false);
 
-  async function handle(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setBusy(true);
+    setDone(false);
+    setPct(0);
     try {
-      await onUpload(file);
+      const res = await uploadFileWithProgress(file, setPct);
+      onChange(res.id);
+      setDone(true);
+      toast.success(`Enviado: ${res.name}`);
+      setTimeout(() => setDone(false), 2500);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Falha no upload");
     } finally {
-      setBusy(false);
+      setPct(null);
       if (inputRef.current) inputRef.current.value = "";
     }
   }
 
+  const uploading = pct !== null;
+
   return (
-    <>
-      <Button
-        type="button"
-        variant="secondary"
-        className="shrink-0"
-        disabled={busy}
-        onClick={() => inputRef.current?.click()}
-        title={label}
-      >
-        {busy ? (
-          <Loader2 size={16} className="animate-spin" />
-        ) : (
-          <Upload size={16} />
+    <div className="space-y-1.5">
+      <Label>{label}</Label>
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Input
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            className={done ? "pr-9" : undefined}
+          />
+          {done && (
+            <Check
+              size={16}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-teal"
+            />
+          )}
+        </div>
+        {uploadable && (
+          <Button
+            type="button"
+            variant="secondary"
+            className="shrink-0"
+            disabled={uploading}
+            onClick={() => inputRef.current?.click()}
+            title={uploadLabel}
+          >
+            {uploading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Upload size={16} />
+            )}
+          </Button>
         )}
-      </Button>
-      <input
-        ref={inputRef}
-        type="file"
-        accept={accept}
-        className="hidden"
-        onChange={handle}
-      />
-    </>
+        <input
+          ref={inputRef}
+          type="file"
+          accept={accept}
+          className="hidden"
+          onChange={handleFile}
+        />
+      </div>
+
+      {uploading && (
+        <div className="flex items-center gap-2">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
+            <div
+              className="h-full rounded-full bg-primary transition-all duration-150"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <span className="w-9 text-right text-xs tabular-nums text-muted-foreground">
+            {pct}%
+          </span>
+        </div>
+      )}
+    </div>
   );
 }

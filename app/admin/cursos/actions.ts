@@ -314,3 +314,58 @@ export async function moveLesson(
   revalidatePath(`/admin/cursos/${lesson.module.courseId}`);
   return { ok: true };
 }
+
+/**
+ * Reordena todos os módulos do curso conforme `orderedIds` (drag & drop).
+ * Aplica em duas passadas (ordens temporárias negativas → finais) para não
+ * violar o unique `[courseId, order]` no meio da transação.
+ */
+export async function reorderModules(
+  courseId: string,
+  orderedIds: string[],
+): Promise<Result> {
+  await assertCourseAccess(courseId);
+  const count = await prisma.module.count({
+    where: { courseId, id: { in: orderedIds } },
+  });
+  if (count !== orderedIds.length) return { error: "Lista inválida" };
+
+  await prisma.$transaction([
+    ...orderedIds.map((id, i) =>
+      prisma.module.update({ where: { id }, data: { order: -(i + 1) } }),
+    ),
+    ...orderedIds.map((id, i) =>
+      prisma.module.update({ where: { id }, data: { order: i + 1 } }),
+    ),
+  ]);
+  revalidatePath(`/admin/cursos/${courseId}`);
+  return { ok: true };
+}
+
+/** Reordena as aulas de um módulo conforme `orderedIds` (drag & drop). */
+export async function reorderLessons(
+  moduleId: string,
+  orderedIds: string[],
+): Promise<Result> {
+  const mod = await prisma.module.findUnique({
+    where: { id: moduleId },
+    select: { courseId: true },
+  });
+  if (!mod) return { error: "Módulo não encontrado" };
+  await assertCourseAccess(mod.courseId);
+  const count = await prisma.lesson.count({
+    where: { moduleId, id: { in: orderedIds } },
+  });
+  if (count !== orderedIds.length) return { error: "Lista inválida" };
+
+  await prisma.$transaction([
+    ...orderedIds.map((id, i) =>
+      prisma.lesson.update({ where: { id }, data: { order: -(i + 1) } }),
+    ),
+    ...orderedIds.map((id, i) =>
+      prisma.lesson.update({ where: { id }, data: { order: i + 1 } }),
+    ),
+  ]);
+  revalidatePath(`/admin/cursos/${mod.courseId}`);
+  return { ok: true };
+}

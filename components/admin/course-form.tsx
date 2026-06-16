@@ -4,6 +4,7 @@ import * as React from "react";
 import { useForm, Controller, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +49,7 @@ export function CourseForm({
     register,
     handleSubmit,
     control,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<CourseInput>({
     resolver: zodResolver(courseSchema) as Resolver<CourseInput>,
@@ -153,12 +155,17 @@ export function CourseForm({
 
       <div className="space-y-1.5">
         <Label htmlFor="thumbnailUrl">URL da capa</Label>
-        <Input
-          id="thumbnailUrl"
-          placeholder="https://…"
-          {...register("thumbnailUrl")}
-        />
-        <FieldError message={errors.thumbnailUrl?.message} />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+          <div className="flex-1 space-y-1.5">
+            <Input
+              id="thumbnailUrl"
+              placeholder="https://…"
+              {...register("thumbnailUrl")}
+            />
+            <FieldError message={errors.thumbnailUrl?.message} />
+          </div>
+          <ThumbPreview url={watch("thumbnailUrl")} />
+        </div>
       </div>
 
       <div className="flex justify-end">
@@ -171,5 +178,30 @@ export function CourseForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+function ThumbPreview({ url }: { url?: string }) {
+  const [error, setError] = React.useState(false);
+  React.useEffect(() => setError(false), [url]);
+  const valid = url && /^https?:\/\//.test(url);
+
+  return (
+    <div className="flex aspect-video w-full shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-secondary/40 sm:w-44">
+      {valid && !error ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={url}
+          alt="Prévia da capa"
+          className="h-full w-full object-cover"
+          onError={() => setError(true)}
+        />
+      ) : (
+        <span className="flex flex-col items-center gap-1 text-xs text-muted-foreground">
+          <ImageIcon size={20} />
+          Prévia
+        </span>
+      )}
+    </div>
   );
 }
