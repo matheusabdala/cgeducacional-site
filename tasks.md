@@ -24,7 +24,7 @@ Convenções: código em inglês, UI em pt-BR, commits pequenos por subtarefa, P
 - [x] Instalar e inicializar **shadcn/ui** — base + `button`, `card`, `badge`, `input` criados (`components.json` + `cn`). `dialog`, `dropdown`, `toast`, `form`, `tabs`, `avatar` ficam para quando a tela precisar (`npx shadcn add`).
 - [x] Ajustar `tsconfig` (alias `@/*`) + estrutura `app/` `components/` `components/ui/` `lib/`. (`server/` entra na Fase 4.)
 - [x] Configurar build/start para **Coolify** (Dockerfile + `output: 'standalone'` no `next.config`).
-- [ ] Deploy de validação no Coolify (página em branco já no ar). _(passo manual no painel Coolify)_
+- [x] Deploy de validação no Coolify — **app no ar** em `http://rskswcw8wgcc4ckko4so4gos.161.97.136.40.sslip.io` (domínio temporário sslip.io; app `cg-educacional-lms`, branch `feat/nextjs-migration`). Migration aplicada durante o build.
 
 ## Fase 2 — Landing institucional (porte do que já existe)
 
@@ -39,9 +39,9 @@ Convenções: código em inglês, UI em pt-BR, commits pequenos por subtarefa, P
 > reais (criar projeto, rodar migration, aplicar RLS, habilitar provedores) estão
 > no runbook **`docs/fase-3-setup.md`**.
 
-- [ ] Criar projeto **Supabase Cloud**; configurar env (`DATABASE_URL`, `DIRECT_URL`, `SUPABASE_URL`, anon/service keys). _(manual — `.env.example` e runbook prontos)_
-- [x] Modelar **Prisma** schema (User, Course, Module, Lesson, Enrollment, LessonProgress, Certificate) + enums (`Role`, `CourseLevel`, `CourseCategory`, `VideoProvider`). `prisma generate` ✓.
-- [x] Seed (`prisma/seed.ts`) a partir de `constants.ts` (instrutores + cursos + módulos + aulas). _Rodar `npm run db:migrate` + `npm run db:seed` após criar o projeto._
+- [x] Projeto **Supabase Cloud** criado e conectado (us-east-1). Banco via **pooler** `aws-1-us-east-1` (host direto é IPv6-only). Env no Coolify configurado.
+- [x] Modelar **Prisma** schema (User, Course, Module, Lesson, Enrollment, LessonProgress, Certificate) + enums (`Role`, `CourseLevel`, `CourseCategory`, `VideoProvider`).
+- [x] **Migration `0_init` aplicada** no Supabase (via `prisma migrate deploy` no build do Coolify). Seed dos cursos ainda pendente — a landing lê de `constants.ts`; `npm run db:seed` quando o LMS for ler cursos do banco.
 - [x] **Supabase Auth** (código): server actions de email/senha + **OAuth Google**, callback (`/auth/callback`), `ensureProfile`. _Habilitar provedores no painel (runbook)._
 - [x] Políticas **RLS** escritas em `prisma/rls.sql` (helpers `is_admin`/`is_enrolled`; aluno lê via `Enrollment`; instructor/admin gerenciam o próprio). _Aplicar no SQL Editor (runbook)._
 - [x] Helpers de sessão (`lib/auth.ts`: `getAuthUser`/`requireUser`/`requireRole`) + middleware protegendo `/aprender` e `/admin`.
