@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Plyr } from "plyr-react";
+import { Plyr, type APITypes } from "plyr-react";
 import "plyr-react/plyr.css";
 import type { VideoSource } from "@/server/media/types";
 
@@ -14,12 +14,54 @@ import type { VideoSource } from "@/server/media/types";
 export function LessonPlayer({
   source,
   poster,
+  startAt,
+  onProgress,
+  onEnded,
 }: {
   source: VideoSource;
   poster?: string;
+  /** Posição (s) para retomar a reprodução. */
+  startAt?: number;
+  /** Posição atual (s) — chamado em cada timeupdate. */
+  onProgress?: (seconds: number) => void;
+  onEnded?: () => void;
 }) {
   const [mounted, setMounted] = React.useState(false);
+  const apiRef = React.useRef<APITypes>(null);
   React.useEffect(() => setMounted(true), []);
+
+  // Liga aos eventos do Plyr: retomar posição, reportar progresso, fim.
+  React.useEffect(() => {
+    if (!mounted) return;
+    const player = apiRef.current?.plyr;
+    if (!player || typeof player.on !== "function") return;
+
+    let seeked = false;
+    const onReady = () => {
+      if (!seeked && startAt && startAt > 1) {
+        try {
+          player.currentTime = startAt;
+        } catch {
+          // alguns providers só permitem seek após play
+        }
+        seeked = true;
+      }
+    };
+    const onTime = () => onProgress?.(Math.floor(player.currentTime || 0));
+    const onEnd = () => onEnded?.();
+
+    player.on("loadedmetadata", onReady);
+    player.on("playing", onReady);
+    player.on("timeupdate", onTime);
+    player.on("ended", onEnd);
+    return () => {
+      player.off("loadedmetadata", onReady);
+      player.off("playing", onReady);
+      player.off("timeupdate", onTime);
+      player.off("ended", onEnd);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted, startAt, onProgress, onEnded]);
 
   const plyrSource = React.useMemo(() => {
     if (source.kind === "youtube") {
@@ -71,7 +113,7 @@ export function LessonPlayer({
   return (
     <div className="relative overflow-hidden rounded-xl border border-border bg-black shadow-card">
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      <Plyr source={plyrSource as any} options={options as any} />
+      <Plyr ref={apiRef} source={plyrSource as any} options={options as any} />
       {source.kind === "youtube" && (
         // Cobre a faixa superior (título/logo do YouTube no pause/hover).
         <div

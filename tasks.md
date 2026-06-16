@@ -76,11 +76,11 @@ Meta: começar só com **Google Drive (padrão, grátis)** + **YouTube unlisted 
 
 ## Fase 6 — Painel do Aluno
 
-- [ ] Dashboard `/aprender` com cursos matriculados e continuar de onde parou.
-- [ ] Página do curso: lista de módulos/aulas com estado (assistida/em andamento/bloqueada).
-- [ ] **Player** com salvamento de progresso (`watchedSeconds`) e marcação de aula concluída.
-- [ ] **Download** de materiais (com checagem de matrícula).
-- [ ] Marcar curso como concluído ao atingir 100%.
+- [x] Dashboard `/aprender` com cursos matriculados, **% concluído** e **continuar de onde parou** (retoma na 1ª aula não concluída).
+- [x] Página do curso `/aprender/[slug]`: módulos/aulas com estado (✓ concluída / atual), barra de progresso, botão continuar. _(navegação livre — gate sequencial "bloqueada" fica como opção futura.)_
+- [x] **Player** (Plyr) na aula com **salvamento de progresso** (`watchedSeconds` a cada 15s + ao ocultar a aba, retoma na posição) e **marcar concluída** (auto-conclui ao terminar o vídeo). Outline lateral com navegação.
+- [x] **Download** de materiais via `/api/material/[lessonId]` (checagem de matrícula).
+- [x] Marca o **curso como concluído** (`Enrollment.completedAt`) ao atingir 100% das aulas.
 
 ## Fase 7 — Matrícula manual e Certificados
 
