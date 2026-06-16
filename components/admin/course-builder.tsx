@@ -26,6 +26,7 @@ import {
   Trash2,
   Video,
   FileDown,
+  FileText,
   Youtube,
   HardDrive,
   Layers,
@@ -57,9 +58,11 @@ type Lesson = {
   id: string;
   title: string;
   description: string | null;
+  content: string | null;
   durationSeconds: number | null;
   videoProvider: "drive" | "youtube";
   videoRef: string | null;
+  documentFileId: string | null;
   materialFileId: string | null;
 };
 type ModuleT = { id: string; title: string; order: number; lessons: Lesson[] };
@@ -335,17 +338,26 @@ function SortableLessonRow({
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm text-foreground">{lesson.title}</p>
         <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-          {lesson.videoProvider === "youtube" ? (
-            <Youtube size={12} />
-          ) : (
-            <HardDrive size={12} />
+          {lesson.videoRef && (
+            <span className="inline-flex items-center gap-1">
+              {lesson.videoProvider === "youtube" ? (
+                <Youtube size={12} />
+              ) : (
+                <HardDrive size={12} />
+              )}
+              <Video size={12} className="text-teal" />
+            </span>
           )}
-          {lesson.videoRef ? (
-            <Video size={12} className="text-teal" />
-          ) : (
-            <span>sem vídeo</span>
+          {lesson.documentFileId && (
+            <FileText size={12} className="text-teal" />
           )}
-          {lesson.materialFileId && <FileDown size={12} className="text-teal" />}
+          {lesson.content && <span className="text-teal">texto</span>}
+          {lesson.materialFileId && (
+            <FileDown size={12} className="text-teal" />
+          )}
+          {!lesson.videoRef &&
+            !lesson.documentFileId &&
+            !lesson.content && <span>sem conteúdo</span>}
           {dur && <span>· {dur}</span>}
         </div>
       </div>

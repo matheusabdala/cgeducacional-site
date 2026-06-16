@@ -5,10 +5,12 @@ import {
   CheckCircle2,
   Circle,
   FileText,
+  FileDown,
   PlayCircle,
   Video,
   BookOpen,
   Play,
+  Lock,
 } from "lucide-react";
 import { getAuthUser, getCurrentProfile } from "@/lib/auth";
 import { getCourseForLearner } from "@/lib/learn";
@@ -48,7 +50,7 @@ export default async function CoursePage({
   const course = await getCourseForLearner(user.id, slug, isStaff);
   if (!course) notFound();
 
-  const isDone = course.completedAt != null || course.percent === 100;
+  const isDone = course.total > 0 && course.percent === 100;
   const resumePath = course.resumeLessonId
     ? `/aprender/${course.slug}/${course.resumeLessonId}`
     : null;
@@ -139,6 +141,37 @@ export default async function CoursePage({
                 <ul className="divide-y divide-border">
                   {module.lessons.map((lesson) => {
                     const duration = fmtDuration(lesson.durationSeconds);
+
+                    // Aula travada (drip/sequencial): não clicável.
+                    if (lesson.locked) {
+                      const unlockLabel = lesson.unlockAt
+                        ? new Intl.DateTimeFormat("pt-BR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          }).format(lesson.unlockAt)
+                        : null;
+                      return (
+                        <li key={lesson.id}>
+                          <div className="flex items-center gap-3 px-5 py-3.5 opacity-70">
+                            <Lock
+                              size={20}
+                              className="shrink-0 text-muted-foreground"
+                              aria-hidden
+                            />
+                            <span className="min-w-0 flex-1 truncate text-sm font-medium text-muted-foreground">
+                              {lesson.title}
+                            </span>
+                            <span className="shrink-0 text-xs text-muted-foreground">
+                              {unlockLabel
+                                ? `Disponível em ${unlockLabel}`
+                                : "Conclua a anterior"}
+                            </span>
+                          </div>
+                        </li>
+                      );
+                    }
+
                     return (
                       <li key={lesson.id}>
                         <Link
@@ -147,23 +180,11 @@ export default async function CoursePage({
                         >
                           <span className="shrink-0">
                             {lesson.completed ? (
-                              <CheckCircle2
-                                size={20}
-                                className="text-teal"
-                                aria-hidden
-                              />
+                              <CheckCircle2 size={20} className="text-teal" aria-hidden />
                             ) : lesson.hasVideo ? (
-                              <PlayCircle
-                                size={20}
-                                className="text-muted-foreground"
-                                aria-hidden
-                              />
+                              <PlayCircle size={20} className="text-muted-foreground" aria-hidden />
                             ) : (
-                              <Circle
-                                size={20}
-                                className="text-muted-foreground"
-                                aria-hidden
-                              />
+                              <Circle size={20} className="text-muted-foreground" aria-hidden />
                             )}
                           </span>
 
@@ -180,16 +201,13 @@ export default async function CoursePage({
 
                           <span className="flex shrink-0 items-center gap-3 text-muted-foreground">
                             {lesson.hasVideo && (
-                              <Video
-                                size={15}
-                                aria-label="Possui vídeo"
-                              />
+                              <Video size={15} aria-label="Possui vídeo" />
+                            )}
+                            {lesson.hasDocument && (
+                              <FileText size={15} aria-label="Possui PDF" />
                             )}
                             {lesson.hasMaterial && (
-                              <FileText
-                                size={15}
-                                aria-label="Possui material"
-                              />
+                              <FileDown size={15} aria-label="Possui material" />
                             )}
                             {duration && (
                               <span className="text-xs tabular-nums">

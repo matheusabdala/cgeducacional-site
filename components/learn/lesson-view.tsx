@@ -10,7 +10,8 @@ import {
   Download,
   ChevronLeft,
   ChevronRight,
-  Film,
+  FileX,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LessonPlayer } from "@/components/player/lesson-player";
@@ -26,7 +27,9 @@ export function LessonView({
   courseSlug,
   title,
   description,
+  content,
   videoSource,
+  hasDocument,
   startAt,
   initialCompleted,
   hasMaterial,
@@ -37,7 +40,9 @@ export function LessonView({
   courseSlug: string;
   title: string;
   description: string | null;
+  content: string | null;
   videoSource: VideoSource | null;
+  hasDocument: boolean;
   startAt: number;
   initialCompleted: boolean;
   hasMaterial: boolean;
@@ -55,7 +60,6 @@ export function LessonView({
     posRef.current = seconds;
   }, []);
 
-  // Salva a posição periodicamente e ao sair (resume).
   React.useEffect(() => {
     function flush() {
       if (Math.abs(posRef.current - savedRef.current) < 3) return;
@@ -85,11 +89,8 @@ export function LessonView({
       setCompleted(!next);
       return;
     }
-    if (next && r.courseCompleted) {
-      toast.success("🎉 Curso concluído! Parabéns.");
-    } else {
-      toast.success(next ? "Aula concluída" : "Marcada como não concluída");
-    }
+    if (next && r.courseCompleted) toast.success("🎉 Curso concluído! Parabéns.");
+    else toast.success(next ? "Aula concluída" : "Marcada como não concluída");
     router.refresh();
   }
 
@@ -100,8 +101,11 @@ export function LessonView({
     });
   }, [lessonId, router]);
 
+  const docUrl = `/api/material/${lessonId}?which=document&inline=1`;
+
   return (
     <div className="space-y-5">
+      {/* Mídia principal: vídeo > PDF > (texto abaixo) */}
       {videoSource ? (
         <LessonPlayer
           source={videoSource}
@@ -109,12 +113,33 @@ export function LessonView({
           onProgress={onProgress}
           onEnded={onEnded}
         />
-      ) : (
-        <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card/50 text-muted-foreground">
-          <Film size={28} />
-          <span className="text-sm">Esta aula ainda não tem vídeo.</span>
+      ) : hasDocument ? (
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+          <iframe
+            src={docUrl}
+            title="Documento da aula"
+            className="h-[72vh] w-full bg-white"
+          />
+          <div className="flex items-center justify-between border-t border-border px-4 py-2">
+            <span className="text-xs text-muted-foreground">
+              Documento da aula (PDF)
+            </span>
+            <a
+              href={docUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+            >
+              <ExternalLink size={14} /> Abrir
+            </a>
+          </div>
         </div>
-      )}
+      ) : !content ? (
+        <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card/50 text-muted-foreground">
+          <FileX size={28} />
+          <span className="text-sm">Esta aula ainda não tem conteúdo.</span>
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-2">
         <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
@@ -124,6 +149,13 @@ export function LessonView({
           <p className="leading-relaxed text-muted-foreground">{description}</p>
         )}
       </div>
+
+      {/* Conteúdo escrito */}
+      {content && (
+        <div className="whitespace-pre-wrap leading-relaxed text-foreground/90">
+          {content}
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3 border-y border-border py-4">
         <Button

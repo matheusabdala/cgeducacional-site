@@ -82,6 +82,12 @@ Meta: começar só com **Google Drive (padrão, grátis)** + **YouTube unlisted 
 - [x] **Download** de materiais via `/api/material/[lessonId]` (checagem de matrícula).
 - [x] Marca o **curso como concluído** (`Enrollment.completedAt`) ao atingir 100% das aulas.
 
+### Extras (tipos de conteúdo + liberação programada)
+- [x] **Aulas multi-formato**: cada aula pode ter **vídeo** (Drive/YouTube), **PDF exibido inline** (`documentFileId`), **conteúdo escrito** (`content`) e **material de apoio** (download) — em qualquer combinação. Cursos podem ser 100% escritos/PDF, sem vídeo. PDF servido inline via `/api/material?which=document&inline=1`.
+- [x] **Gate sequencial** (opção por curso, `requireSequential`): trava a próxima aula até concluir a anterior.
+- [x] **Drip / liberação programada** (opção por curso): libera `dripInitialCount` aulas na matrícula e o restante após `dripDelayDays` dias — **proteção contra reembolso** (CDC 7 dias). Imposto também nas rotas de conteúdo (`/api/video`, `/api/material`) e nas actions de progresso, não só na UI.
+- Migration `1_content_and_gating` (aplica no próximo deploy).
+
 ## Fase 7 — Matrícula manual e Certificados
 
 - [ ] **Matrícula manual via admin**: no painel admin, listar alunos cadastrados e **ativar curso(s)** para um aluno (cria `Enrollment`); permitir remover.

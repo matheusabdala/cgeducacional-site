@@ -23,6 +23,7 @@ export async function saveProgress(input: unknown): Promise<Result> {
   if (!user) return { error: "Não autenticado" };
   const lesson = await getLessonForUser(lessonId, user.id);
   if (!lesson) return { error: "Sem acesso" };
+  if (lesson.locked) return { error: "Aula bloqueada" };
 
   await prisma.lessonProgress.upsert({
     where: { userId_lessonId: { userId: user.id, lessonId } },
@@ -40,6 +41,7 @@ async function setCompleted(
   if (!user) return { error: "Não autenticado" };
   const lesson = await getLessonForUser(lessonId, user.id);
   if (!lesson) return { error: "Sem acesso" };
+  if (lesson.locked) return { error: "Aula bloqueada" };
 
   await prisma.lessonProgress.upsert({
     where: { userId_lessonId: { userId: user.id, lessonId } },

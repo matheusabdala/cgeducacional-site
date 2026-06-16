@@ -65,6 +65,10 @@ export async function createCourse(values: unknown): Promise<Result> {
       price: d.price,
       durationLabel: d.durationLabel || null,
       thumbnailUrl: d.thumbnailUrl || null,
+      requireSequential: d.requireSequential,
+      dripEnabled: d.dripEnabled,
+      dripInitialCount: d.dripInitialCount,
+      dripDelayDays: d.dripDelayDays,
       instructorId: profile.id,
     },
   });
@@ -93,6 +97,10 @@ export async function updateCourse(
       price: d.price,
       durationLabel: d.durationLabel || null,
       thumbnailUrl: d.thumbnailUrl || null,
+      requireSequential: d.requireSequential,
+      dripEnabled: d.dripEnabled,
+      dripInitialCount: d.dripInitialCount,
+      dripDelayDays: d.dripDelayDays,
     },
   });
   revalidatePath(`/admin/cursos/${id}`);
@@ -234,6 +242,8 @@ export async function createLesson(
       durationSeconds: d.durationSeconds || null,
       videoProvider: d.videoProvider,
       videoRef: d.videoRef || null,
+      content: d.content || null,
+      documentFileId: d.documentFileId || null,
       materialFileId: d.materialFileId || null,
       order: (last?.order ?? 0) + 1,
     },
@@ -263,6 +273,8 @@ export async function updateLesson(
       durationSeconds: d.durationSeconds || null,
       videoProvider: d.videoProvider,
       videoRef: d.videoRef || null,
+      content: d.content || null,
+      documentFileId: d.documentFileId || null,
       materialFileId: d.materialFileId || null,
     },
   });

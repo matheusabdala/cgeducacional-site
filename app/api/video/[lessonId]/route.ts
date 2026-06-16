@@ -21,6 +21,7 @@ export async function GET(
 
   const lesson = await getLessonForUser(lessonId, user.id);
   if (!lesson) return new Response("Sem acesso", { status: 403 });
+  if (lesson.locked) return new Response("Aula bloqueada", { status: 403 });
 
   if (lesson.videoProvider !== "drive" || !lesson.videoRef) {
     return new Response("Vídeo indisponível", { status: 404 });

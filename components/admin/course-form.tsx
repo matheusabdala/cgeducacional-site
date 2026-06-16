@@ -4,7 +4,8 @@ import * as React from "react";
 import { useForm, Controller, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon, Lock } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,10 @@ const EMPTY: CourseInput = {
   price: 0,
   durationLabel: "",
   thumbnailUrl: "",
+  requireSequential: false,
+  dripEnabled: false,
+  dripInitialCount: 0,
+  dripDelayDays: 7,
 };
 
 export function CourseForm({
@@ -165,6 +170,80 @@ export function CourseForm({
             <FieldError message={errors.thumbnailUrl?.message} />
           </div>
           <ThumbPreview url={watch("thumbnailUrl")} />
+        </div>
+      </div>
+
+      {/* Liberação de conteúdo (opcional) */}
+      <div className="space-y-4 rounded-xl border border-border bg-secondary/20 p-4">
+        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+          <Lock size={16} className="text-muted-foreground" /> Liberação de
+          conteúdo
+        </div>
+
+        <label className="flex items-start justify-between gap-4">
+          <span className="space-y-0.5">
+            <span className="block text-sm font-medium text-foreground">
+              Exigir conclusão em ordem
+            </span>
+            <span className="block text-xs text-muted-foreground">
+              O aluno só abre a próxima aula após concluir a anterior.
+            </span>
+          </span>
+          <Controller
+            control={control}
+            name="requireSequential"
+            render={({ field }) => (
+              <Switch checked={field.value} onCheckedChange={field.onChange} />
+            )}
+          />
+        </label>
+
+        <div className="border-t border-border pt-4">
+          <label className="flex items-start justify-between gap-4">
+            <span className="space-y-0.5">
+              <span className="block text-sm font-medium text-foreground">
+                Liberação programada (drip)
+              </span>
+              <span className="block text-xs text-muted-foreground">
+                Libera algumas aulas na hora e o restante após X dias da
+                matrícula — útil contra reembolso (7 dias).
+              </span>
+            </span>
+            <Controller
+              control={control}
+              name="dripEnabled"
+              render={({ field }) => (
+                <Switch checked={field.value} onCheckedChange={field.onChange} />
+              )}
+            />
+          </label>
+
+          {watch("dripEnabled") && (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="dripInitialCount">
+                  Liberar de imediato (nº de aulas)
+                </Label>
+                <Input
+                  id="dripInitialCount"
+                  type="number"
+                  min="0"
+                  {...register("dripInitialCount")}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="dripDelayDays">
+                  Liberar o restante após (dias)
+                </Label>
+                <Input
+                  id="dripDelayDays"
+                  type="number"
+                  min="0"
+                  {...register("dripDelayDays")}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

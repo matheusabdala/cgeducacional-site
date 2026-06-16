@@ -3,7 +3,87 @@ import { prisma } from "@/lib/prisma";
 import { resolveVideoSource } from "@/server/media";
 import type { VideoSource } from "@/server/media/types";
 
-/** Curso matriculado com progresso (para o dashboard do aluno). */
+// --- Liberação de conteúdo (gating) -------------------------------------
+
+export interface GatingFields {
+  requireSequential: boolean;
+  dripEnabled: boolean;
+  dripInitialCount: number;
+  dripDelayDays: number;
+}
+
+export type LessonLock = {
+  locked: boolean;
+  reason?: "sequential" | "drip";
+  unlockAt?: Date;
+};
+
+const DAY_MS = 86_400_000;
+
+/** Decide se uma aula está travada por gate sequencial ou drip. */
+export function computeLessonLock(opts: {
+  index: number;
+  firstIncompleteIndex: number;
+  course: GatingFields;
+  enrolledAt: Date | null;
+  now: Date;
+}): LessonLock {
+  const { index, firstIncompleteIndex, course, enrolledAt, now } = opts;
+
+  // Sequencial: tudo depois da primeira aula não concluída fica travado.
+  if (course.requireSequential && index > firstIncompleteIndex) {
+    return { locked: true, reason: "sequential" };
+  }
+  // Drip: as aulas além de `dripInitialCount` só liberam após N dias.
+  if (course.dripEnabled && enrolledAt && index >= course.dripInitialCount) {
+    const unlockAt = new Date(
+      enrolledAt.getTime() + course.dripDelayDays * DAY_MS,
+    );
+    if (now < unlockAt) return { locked: true, reason: "drip", unlockAt };
+  }
+  return { locked: false };
+}
+
+interface CourseAccess {
+  locks: Map<string, LessonLock>;
+  firstIncompleteIndex: number;
+  resumeLessonId: string | null;
+}
+
+export function computeCourseAccess(
+  orderedLessonIds: string[],
+  completed: Set<string>,
+  course: GatingFields,
+  enrolledAt: Date | null,
+  isStaff: boolean,
+  now: Date,
+): CourseAccess {
+  const firstIncomplete = orderedLessonIds.findIndex((id) => !completed.has(id));
+  const firstIncompleteIndex =
+    firstIncomplete === -1 ? orderedLessonIds.length : firstIncomplete;
+
+  const locks = new Map<string, LessonLock>();
+  orderedLessonIds.forEach((id, index) => {
+    locks.set(
+      id,
+      isStaff
+        ? { locked: false }
+        : computeLessonLock({ index, firstIncompleteIndex, course, enrolledAt, now }),
+    );
+  });
+
+  // Retoma na primeira aula não concluída e desbloqueada; senão a 1ª incompleta.
+  let resumeLessonId =
+    orderedLessonIds.find((id) => !completed.has(id) && !locks.get(id)!.locked) ??
+    orderedLessonIds.find((id) => !completed.has(id)) ??
+    orderedLessonIds[orderedLessonIds.length - 1] ??
+    null;
+
+  return { locks, firstIncompleteIndex, resumeLessonId };
+}
+
+// --- Dashboard ----------------------------------------------------------
+
 export interface EnrolledCourse {
   id: string;
   slug: string;
@@ -16,10 +96,10 @@ export interface EnrolledCourse {
   completedAt: Date | null;
 }
 
-/** Lista os cursos do aluno com % concluído e a aula para retomar. */
 export async function getEnrolledCourses(
   userId: string,
 ): Promise<EnrolledCourse[]> {
+  const now = new Date();
   const enrollments = await prisma.enrollment.findMany({
     where: { userId },
     orderBy: { enrolledAt: "desc" },
@@ -37,17 +117,23 @@ export async function getEnrolledCourses(
     },
   });
 
-  const lessonIds = enrollments.flatMap((e) =>
+  const allIds = enrollments.flatMap((e) =>
     e.course.modules.flatMap((m) => m.lessons.map((l) => l.id)),
   );
-  const completed = await completedLessonSet(userId, lessonIds);
+  const completed = await completedLessonSet(userId, allIds);
 
   return enrollments.map((e) => {
     const ordered = e.course.modules.flatMap((m) => m.lessons.map((l) => l.id));
     const total = ordered.length;
     const done = ordered.filter((id) => completed.has(id)).length;
-    const resumeLessonId =
-      ordered.find((id) => !completed.has(id)) ?? ordered[ordered.length - 1] ?? null;
+    const { resumeLessonId } = computeCourseAccess(
+      ordered,
+      completed,
+      e.course,
+      e.enrolledAt,
+      false,
+      now,
+    );
     return {
       id: e.course.id,
       slug: e.course.slug,
@@ -62,6 +148,8 @@ export async function getEnrolledCourses(
   });
 }
 
+// --- Página do curso ----------------------------------------------------
+
 export interface LearnerCourse {
   id: string;
   slug: string;
@@ -72,7 +160,6 @@ export interface LearnerCourse {
   done: number;
   percent: number;
   resumeLessonId: string | null;
-  completedAt: Date | null;
   modules: {
     id: string;
     title: string;
@@ -81,18 +168,21 @@ export interface LearnerCourse {
       title: string;
       durationSeconds: number | null;
       completed: boolean;
+      locked: boolean;
+      unlockAt: Date | null;
       hasVideo: boolean;
+      hasDocument: boolean;
       hasMaterial: boolean;
     }[];
   }[];
 }
 
-/** Curso do aluno (página do curso). `null` se não matriculado / não existe. */
 export async function getCourseForLearner(
   userId: string,
   slug: string,
   isStaff = false,
 ): Promise<LearnerCourse | null> {
+  const now = new Date();
   const course = await prisma.course.findUnique({
     where: { slug },
     include: {
@@ -104,23 +194,27 @@ export async function getCourseForLearner(
   });
   if (!course) return null;
 
-  if (!isStaff) {
-    const enrollment = await prisma.enrollment.findUnique({
-      where: { userId_courseId: { userId, courseId: course.id } },
-      select: { id: true },
-    });
-    if (!enrollment) return null;
-  }
+  const enrollment = isStaff
+    ? null
+    : await prisma.enrollment.findUnique({
+        where: { userId_courseId: { userId, courseId: course.id } },
+        select: { enrolledAt: true },
+      });
+  if (!isStaff && !enrollment) return null;
 
-  const allLessonIds = course.modules.flatMap((m) => m.lessons.map((l) => l.id));
-  const completed = await completedLessonSet(userId, allLessonIds);
+  const ordered = course.modules.flatMap((m) => m.lessons.map((l) => l.id));
+  const completed = await completedLessonSet(userId, ordered);
+  const { locks, resumeLessonId } = computeCourseAccess(
+    ordered,
+    completed,
+    course,
+    enrollment?.enrolledAt ?? null,
+    isStaff,
+    now,
+  );
 
-  const total = allLessonIds.length;
-  const done = allLessonIds.filter((id) => completed.has(id)).length;
-  const resumeLessonId =
-    allLessonIds.find((id) => !completed.has(id)) ??
-    allLessonIds[allLessonIds.length - 1] ??
-    null;
+  const total = ordered.length;
+  const done = ordered.filter((id) => completed.has(id)).length;
 
   return {
     id: course.id,
@@ -132,21 +226,28 @@ export async function getCourseForLearner(
     done,
     percent: total ? Math.round((done / total) * 100) : 0,
     resumeLessonId,
-    completedAt: null,
     modules: course.modules.map((m) => ({
       id: m.id,
       title: m.title,
-      lessons: m.lessons.map((l) => ({
-        id: l.id,
-        title: l.title,
-        durationSeconds: l.durationSeconds,
-        completed: completed.has(l.id),
-        hasVideo: !!l.videoRef,
-        hasMaterial: !!l.materialFileId,
-      })),
+      lessons: m.lessons.map((l) => {
+        const lock = locks.get(l.id) ?? { locked: false };
+        return {
+          id: l.id,
+          title: l.title,
+          durationSeconds: l.durationSeconds,
+          completed: completed.has(l.id),
+          locked: lock.locked,
+          unlockAt: lock.unlockAt ?? null,
+          hasVideo: !!l.videoRef,
+          hasDocument: !!l.documentFileId,
+          hasMaterial: !!l.materialFileId,
+        };
+      }),
     })),
   };
 }
+
+// --- Página da aula -----------------------------------------------------
 
 export interface LearnerLesson {
   courseSlug: string;
@@ -155,26 +256,28 @@ export interface LearnerLesson {
     id: string;
     title: string;
     description: string | null;
+    content: string | null;
     durationSeconds: number | null;
+    hasDocument: boolean;
     hasMaterial: boolean;
   };
   videoSource: VideoSource | null;
   progress: { watchedSeconds: number; completed: boolean };
+  lock: LessonLock;
   prevLessonId: string | null;
   nextLessonId: string | null;
-  // Navegação lateral (todos os módulos/aulas do curso com estado)
   outline: {
     moduleTitle: string;
-    lessons: { id: string; title: string; completed: boolean }[];
+    lessons: { id: string; title: string; completed: boolean; locked: boolean }[];
   }[];
 }
 
-/** Dados da página de aula do aluno. `null` se sem acesso / não existe. */
 export async function getLessonForLearner(
   userId: string,
   lessonId: string,
   isStaff = false,
 ): Promise<LearnerLesson | null> {
+  const now = new Date();
   const lesson = await prisma.lesson.findUnique({
     where: { id: lessonId },
     include: { module: { include: { course: true } } },
@@ -182,25 +285,30 @@ export async function getLessonForLearner(
   if (!lesson) return null;
   const course = lesson.module.course;
 
-  if (!isStaff) {
-    const enrollment = await prisma.enrollment.findUnique({
-      where: { userId_courseId: { userId, courseId: course.id } },
-      select: { id: true },
-    });
-    if (!enrollment) return null;
-  }
+  const enrollment = isStaff
+    ? null
+    : await prisma.enrollment.findUnique({
+        where: { userId_courseId: { userId, courseId: course.id } },
+        select: { enrolledAt: true },
+      });
+  if (!isStaff && !enrollment) return null;
 
-  // Ordem linear das aulas do curso (para prev/next e outline).
   const modules = await prisma.module.findMany({
     where: { courseId: course.id },
     orderBy: { order: "asc" },
     include: { lessons: { orderBy: { order: "asc" } } },
   });
   const flat = modules.flatMap((m) => m.lessons);
-  const idx = flat.findIndex((l) => l.id === lessonId);
-  const completedSet = await completedLessonSet(
-    userId,
-    flat.map((l) => l.id),
+  const orderedIds = flat.map((l) => l.id);
+  const idx = orderedIds.indexOf(lessonId);
+  const completed = await completedLessonSet(userId, orderedIds);
+  const { locks } = computeCourseAccess(
+    orderedIds,
+    completed,
+    course,
+    enrollment?.enrolledAt ?? null,
+    isStaff,
+    now,
   );
 
   const progress = await prisma.lessonProgress.findUnique({
@@ -215,7 +323,9 @@ export async function getLessonForLearner(
       id: lesson.id,
       title: lesson.title,
       description: lesson.description,
+      content: lesson.content,
       durationSeconds: lesson.durationSeconds,
+      hasDocument: !!lesson.documentFileId,
       hasMaterial: !!lesson.materialFileId,
     },
     videoSource: resolveVideoSource({
@@ -227,20 +337,21 @@ export async function getLessonForLearner(
       watchedSeconds: progress?.watchedSeconds ?? 0,
       completed: progress?.completed ?? false,
     },
-    prevLessonId: idx > 0 ? flat[idx - 1].id : null,
-    nextLessonId: idx < flat.length - 1 ? flat[idx + 1].id : null,
+    lock: locks.get(lessonId) ?? { locked: false },
+    prevLessonId: idx > 0 ? orderedIds[idx - 1] : null,
+    nextLessonId: idx < orderedIds.length - 1 ? orderedIds[idx + 1] : null,
     outline: modules.map((m) => ({
       moduleTitle: m.title,
       lessons: m.lessons.map((l) => ({
         id: l.id,
         title: l.title,
-        completed: completedSet.has(l.id),
+        completed: completed.has(l.id),
+        locked: (locks.get(l.id) ?? { locked: false }).locked,
       })),
     })),
   };
 }
 
-/** Conjunto de ids de aulas concluídas pelo usuário (dentre as informadas). */
 async function completedLessonSet(
   userId: string,
   lessonIds: string[],

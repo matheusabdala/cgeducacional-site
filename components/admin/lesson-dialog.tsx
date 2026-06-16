@@ -30,9 +30,11 @@ type LessonData = {
   id: string;
   title: string;
   description: string | null;
+  content: string | null;
   durationSeconds: number | null;
   videoProvider: "drive" | "youtube";
   videoRef: string | null;
+  documentFileId: string | null;
   materialFileId: string | null;
 };
 
@@ -60,6 +62,10 @@ export function LessonDialog({
     lesson?.videoProvider ?? "drive",
   );
   const [videoRef, setVideoRef] = React.useState(lesson?.videoRef ?? "");
+  const [documentFileId, setDocumentFileId] = React.useState(
+    lesson?.documentFileId ?? "",
+  );
+  const [content, setContent] = React.useState(lesson?.content ?? "");
   const [materialFileId, setMaterialFileId] = React.useState(
     lesson?.materialFileId ?? "",
   );
@@ -71,6 +77,8 @@ export function LessonDialog({
       setDurationMin("");
       setProvider("drive");
       setVideoRef("");
+      setDocumentFileId("");
+      setContent("");
       setMaterialFileId("");
     }
   }
@@ -84,9 +92,11 @@ export function LessonDialog({
     const values = {
       title,
       description,
+      content,
       durationSeconds: durationMin ? Number(durationMin) * 60 : undefined,
       videoProvider: provider,
       videoRef,
+      documentFileId,
       materialFileId,
     };
     const result =
@@ -173,6 +183,27 @@ export function LessonDialog({
             accept="video/*"
             uploadLabel="Enviar vídeo"
           />
+
+          <UploadField
+            label="Documento da aula — PDF (opcional, exibido na aula)"
+            value={documentFileId}
+            onChange={setDocumentFileId}
+            placeholder="ID do PDF no Drive"
+            uploadable
+            accept=".pdf"
+            uploadLabel="Enviar PDF"
+          />
+
+          <div className="space-y-1.5">
+            <Label htmlFor="lesson-content">Conteúdo escrito (opcional)</Label>
+            <Textarea
+              id="lesson-content"
+              rows={4}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Texto da aula — para aulas escritas, sem vídeo…"
+            />
+          </div>
 
           <UploadField
             label="Material para download (opcional)"

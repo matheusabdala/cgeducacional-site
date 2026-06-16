@@ -78,6 +78,10 @@ export default async function EditarCursoPage({
             price: Number(course.price),
             durationLabel: course.durationLabel ?? "",
             thumbnailUrl: course.thumbnailUrl ?? "",
+            requireSequential: course.requireSequential,
+            dripEnabled: course.dripEnabled,
+            dripInitialCount: course.dripInitialCount,
+            dripDelayDays: course.dripDelayDays,
           }}
         />
       </section>
@@ -100,9 +104,11 @@ export default async function EditarCursoPage({
               id: l.id,
               title: l.title,
               description: l.description,
+              content: l.content,
               durationSeconds: l.durationSeconds,
               videoProvider: l.videoProvider,
               videoRef: l.videoRef,
+              documentFileId: l.documentFileId,
               materialFileId: l.materialFileId,
             })),
           }))}

@@ -75,6 +75,11 @@ model Course {
   rating          Float          @default(0)
   studentsCount   Int            @default(0)
   published       Boolean        @default(false)
+  // Liberação de conteúdo (opcional, por curso)
+  requireSequential Boolean      @default(false) // trava aula até concluir a anterior
+  dripEnabled       Boolean      @default(false) // libera X aulas e o resto após N dias
+  dripInitialCount  Int          @default(0) // quantas aulas liberadas de imediato
+  dripDelayDays     Int          @default(7) // dias até liberar o restante
   instructorId    String         @db.Uuid
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -113,7 +118,9 @@ model Lesson {
   durationSeconds Int?
   videoProvider   VideoProvider @default(drive)
   videoRef        String? // id no provider (Drive file id / YouTube video id)
-  materialFileId  String? // material p/ download (Drive file id)
+  content         String? // conteúdo escrito da aula (texto longo)
+  documentFileId  String? // PDF da aula exibido inline (Drive file id)
+  materialFileId  String? // material de apoio p/ download (Drive file id)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 

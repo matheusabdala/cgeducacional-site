@@ -26,6 +26,11 @@ export const courseSchema = z.object({
     .url("URL inválida")
     .optional()
     .or(z.literal("")),
+  // Liberação de conteúdo (opcional)
+  requireSequential: z.boolean().default(false),
+  dripEnabled: z.boolean().default(false),
+  dripInitialCount: z.coerce.number().int().min(0).default(0),
+  dripDelayDays: z.coerce.number().int().min(0).default(7),
 });
 
 export const moduleSchema = z.object({
@@ -35,9 +40,11 @@ export const moduleSchema = z.object({
 export const lessonSchema = z.object({
   title: z.string().min(2, "Título muito curto"),
   description: z.string().optional().or(z.literal("")),
+  content: z.string().optional().or(z.literal("")),
   durationSeconds: z.coerce.number().int().min(0).optional(),
   videoProvider: z.enum(["drive", "youtube"]).default("drive"),
   videoRef: z.string().optional().or(z.literal("")),
+  documentFileId: z.string().optional().or(z.literal("")),
   materialFileId: z.string().optional().or(z.literal("")),
 });
 
