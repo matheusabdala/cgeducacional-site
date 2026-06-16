@@ -51,14 +51,14 @@ Convenções: código em inglês, UI em pt-BR, commits pequenos por subtarefa, P
 
 Meta: começar só com **Google Drive (padrão, grátis)** + **YouTube unlisted (opção)**. Tudo atrás de abstração para plugar hosts pagos depois sem reescrever.
 
-- [ ] Definir interfaces `VideoProvider` e `StorageProvider` em `server/media/`.
-- [ ] Enum `videoProvider` em `Lesson` com **`drive` como default**.
-- [ ] **Google Drive Service Account** (PADRÃO): criar credencial, pasta raiz; `DriveStorageProvider` (upload, listar, link de download) e `DriveVideoProvider`.
-- [ ] **YouTube Data API v3** (OPCIONAL): OAuth do canal; `YouTubeVideoProvider` (upload como **unlisted**, retorna videoId). Ativar só quando for usar.
-- [ ] **Player limpo** com **Plyr** (`plyr-react`): controles próprios; `controls=0` no YouTube; skin consistente para Drive e YouTube.
-  - [ ] Overlay (`<div>` transparente) sobre a faixa superior para cobrir título/logo/"Assistir no YouTube"; play/seek via controles do Plyr.
-- [ ] Resolver de player: dado `videoProvider`+`videoRef`, montar a fonte correta para o Plyr.
-- [ ] Endpoint/Action de download de material (valida matrícula antes de gerar link).
+- [x] Interfaces `VideoProvider` e `StorageProvider` em `server/media/types.ts`.
+- [x] Enum `videoProvider` em `Lesson` com **`drive` como default** (no schema Prisma).
+- [x] **Google Drive Service Account** (PADRÃO): `DriveStorageProvider` (upload/list/getStream/delete) e `DriveVideoProvider` em `server/media/drive.ts`. **Credenciais verificadas** (lista a pasta `_CG_EDUCACIONAL_CONTEUDO`). ⚠️ upload por SA em pasta comum pode esbarrar em quota → usar Shared Drive quando subir conteúdo de verdade.
+- [~] **YouTube** (OPCIONAL): `YouTubeVideoProvider` resolve playback (videoId, não listado). Upload via Data API v3/OAuth fica para quando for usar.
+- [x] **Player limpo** com **Plyr** (`plyr-react`) em `components/player/lesson-player.tsx`: controles próprios, `modestbranding`/`rel=0` no YouTube; skin consistente Drive (html5) e YouTube.
+  - [x] Overlay (`<div>` transparente) sobre a faixa superior (mitiga marca do YouTube).
+- [x] Resolver de player: `resolveVideoSource()` em `server/media/index.ts` (provider+ref → fonte do Plyr; Drive via proxy).
+- [x] Stream/download via Route Handlers `/api/video/[lessonId]` e `/api/material/[lessonId]` — **validam matrícula** (`lib/access.ts`), Range/seeking no vídeo.
 
 ### Fase 4.1 — Upgrade de vídeo (futuro, quando houver orçamento/escala)
 - [ ] Adicionar `VideoProvider` pago: **Bunny Stream** ou **Cloudflare Stream** (player impecável, trava por domínio, signed URLs).
