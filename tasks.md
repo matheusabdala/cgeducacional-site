@@ -66,13 +66,13 @@ Meta: começar só com **Google Drive (padrão, grátis)** + **YouTube unlisted 
 
 ## Fase 5 — Painel do Professor / Admin
 
-- [ ] Layout autenticado `/admin` com guard por role.
-- [ ] CRUD de **cursos** (criar, editar, publicar/despublicar, thumbnail).
-- [ ] Gestão de **módulos** e **aulas** (ordenável — drag & drop).
-- [ ] **Upload de vídeo**: seletor de provider na criação da aula — **Drive pré-selecionado (padrão)**, YouTube unlisted como alternativa; barra de progresso.
-- [ ] **Upload de material** (PDF/slides) para o Drive.
-- [ ] **Gestão de alunos e matrículas**: listar alunos cadastrados e **ativar/remover curso** para cada um (matrícula manual — ver Fase 7).
-- [ ] Visão de **progresso dos alunos** por curso (matrículas, % concluído).
+- [x] Layout autenticado `/admin` com guard por role (`requireRole(["admin","instructor"])`), shell com sidebar + topbar (tema + menu do usuário). Páginas públicas movidas p/ route group `(marketing)` (URLs intactas).
+- [x] CRUD de **cursos** (criar, editar, publicar/despublicar via Switch, excluir com confirmação, thumbnail/preço/categoria/nível). Lista em tabela + dashboard com métricas. Server actions + Zod, autorização por dono/admin.
+- [x] Gestão de **módulos** e **aulas** — course builder com adicionar/editar/excluir e **reordenar** (▲▼ — drag&drop fica como refinamento futuro).
+- [x] **Upload de vídeo**: seletor de provider na aula — **Drive pré-selecionado (padrão)**, YouTube não listado como alternativa; upload via `/api/admin/upload` (estado de carregamento; barra de progresso = refinamento).
+- [x] **Upload de material** (PDF/slides) para o Drive (mesma rota de upload).
+- [x] **Gestão de alunos e matrículas**: `/admin/alunos` lista alunos (busca) e detalhe do aluno **ativa/remove curso** (matrícula manual — cria/remove `Enrollment`).
+- [ ] Visão de **progresso dos alunos** por curso (% concluído) — depende do `LessonProgress` (Fase 6); por ora mostra contagem de matrículas.
 
 ## Fase 6 — Painel do Aluno
 
