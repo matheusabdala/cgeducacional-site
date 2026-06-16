@@ -19,6 +19,16 @@ ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Aplica as migrations do Prisma no banco (Supabase) durante o build — o
+# container alcança o banco via pooler. Idempotente (migrate deploy pula as já
+# aplicadas). DATABASE_URL/DIRECT_URL vêm como build-args do Coolify.
+ARG DATABASE_URL
+ARG DIRECT_URL
+ENV DATABASE_URL=$DATABASE_URL
+ENV DIRECT_URL=$DIRECT_URL
+RUN npx prisma migrate deploy
+
 RUN npm run build
 
 # ---- Runtime ----
