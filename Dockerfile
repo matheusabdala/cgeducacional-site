@@ -2,9 +2,11 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-# Schema do Prisma antes do npm ci (o postinstall roda `prisma generate`).
+# Schema do Prisma antes do install (o postinstall roda `prisma generate`).
 COPY prisma ./prisma
-RUN npm ci
+# `npm install` (não `npm ci`): resolve as variantes opcionais por plataforma
+# (ex.: @emnapi musl no Alpine) que o lockfile gerado em glibc/x64 não traz.
+RUN npm install --no-audit --no-fund
 
 # ---- Build ----
 FROM node:22-alpine AS builder
