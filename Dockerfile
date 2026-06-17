@@ -34,6 +34,9 @@ RUN npx prisma migrate deploy \
   || (echo "[migrate] retry 2 em 20s…" && sleep 20 && npx prisma migrate deploy) \
   || echo "[build] AVISO: migrate deploy nao aplicado (verifique DATABASE_URL/DIRECT_URL)"
 
+# Popula cursos de demonstração só se o catálogo estiver vazio (não-fatal).
+RUN npx tsx prisma/seed-if-empty.ts || echo "[build] seed-if-empty pulado"
+
 RUN npm run build
 
 # ---- Runtime ----
