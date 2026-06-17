@@ -127,8 +127,7 @@ export default async function CoursePage({
       {isDone && !isStaff && (
         <CertificateCard
           courseId={course.id}
-          initialCode={cert?.code ?? null}
-          initialPdfUrl={cert?.certificateUrl ?? null}
+          initialIssued={!!cert?.code}
           hasCpf={hasCpf}
         />
       )}

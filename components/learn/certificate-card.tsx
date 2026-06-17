@@ -12,20 +12,21 @@ import { issueCertificate, setCpf } from "@/app/aprender/certificate-actions";
 
 export function CertificateCard({
   courseId,
-  initialCode,
-  initialPdfUrl,
+  initialIssued,
   hasCpf,
 }: {
   courseId: string;
-  initialCode: string | null;
-  initialPdfUrl: string | null;
+  initialIssued: boolean;
   hasCpf: boolean;
 }) {
   const router = useRouter();
-  const [pdfUrl, setPdfUrl] = React.useState(initialPdfUrl);
+  const [issued, setIssued] = React.useState(initialIssued);
   const [needCpf, setNeedCpf] = React.useState(!hasCpf);
   const [cpf, setCpfValue] = React.useState("");
   const [busy, setBusy] = React.useState(false);
+
+  // O LMS serve o PDF via proxy (o aluno não loga no Certimaker).
+  const pdfUrl = `/api/certificate/${courseId}`;
 
   async function emit() {
     setBusy(true);
@@ -48,7 +49,7 @@ export function CertificateCard({
         toast.error(r.error);
         return;
       }
-      setPdfUrl(r.pdfUrl ?? null);
+      setIssued(true);
       toast.success("Certificado emitido! 🎉");
       router.refresh();
     } finally {
@@ -63,7 +64,7 @@ export function CertificateCard({
           <Award size={24} />
         </div>
         <div className="min-w-0 flex-1 space-y-3">
-          {pdfUrl ? (
+          {issued ? (
             <>
               <div>
                 <h3 className="font-semibold text-foreground">

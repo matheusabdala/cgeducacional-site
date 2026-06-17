@@ -142,4 +142,20 @@ export const certimaker = {
     const base = serverEnv.certimakerApiUrl();
     return `${base}/api/certificados/${code}/pdf${inline ? "?inline=1" : ""}`;
   },
+
+  /**
+   * Busca o PDF autenticado (o endpoint /pdf exige o Bearer em produção). O LMS
+   * usa isto para servir o PDF aos alunos via proxy (eles não logam no Certimaker).
+   */
+  async fetchPdf(code: string): Promise<Response> {
+    const res = await fetch(this.pdfUrl(code), {
+      headers: { Authorization: `Bearer ${serverEnv.certimakerApiKey()}` },
+      cache: "no-store",
+      redirect: "manual",
+    });
+    if (res.status >= 300 || !res.body) {
+      throw new CertimakerError("PDF do certificado indisponível", res.status);
+    }
+    return res;
+  },
 };
