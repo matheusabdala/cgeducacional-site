@@ -2,9 +2,12 @@
 
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Course } from '../types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { CourseCover } from '@/components/ui/course-cover';
+import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { createWhatsAppLink } from '../constants';
 import { 
   Clock, 
@@ -23,10 +26,9 @@ import {
 
 interface CourseDetailsPageProps {
   course: Course;
-  onBack: () => void;
 }
 
-export const CourseDetailsPage: React.FC<CourseDetailsPageProps> = ({ course, onBack }) => {
+export const CourseDetailsPage: React.FC<CourseDetailsPageProps> = ({ course }) => {
   const [openModuleIndex, setOpenModuleIndex] = useState<number | null>(0);
 
   const toggleModule = (index: number) => {
@@ -39,18 +41,18 @@ export const CourseDetailsPage: React.FC<CourseDetailsPageProps> = ({ course, on
       {/* Breadcrumb / Back Navigation */}
       <div className="bg-secondary/30 border-b border-border">
         <div className="container mx-auto px-4 md:px-6 py-4">
-          <button
-            onClick={onBack}
+          <Link
+            href="/cursos"
             className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
           >
             <ArrowLeft size={16} className="mr-1" /> Voltar para cursos
-          </button>
+          </Link>
         </div>
       </div>
 
       {/* Hero Header */}
-      <div className="bg-cg-900 text-white py-12 lg:py-16 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+      <div className="bg-gradient-to-br from-cg-800 to-cg-950 text-white py-12 lg:py-16 relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid opacity-15"></div>
         <div className="container mx-auto px-4 md:px-6 relative z-10">
           <div className="max-w-4xl">
             <div className="flex items-center gap-3 mb-4">
@@ -81,10 +83,6 @@ export const CourseDetailsPage: React.FC<CourseDetailsPageProps> = ({ course, on
               <div className="flex items-center gap-2">
                 <User size={18} />
                 <span>Por {course.instructor.name}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock size={18} />
-                <span>Última atualização: Out 2023</span>
               </div>
             </div>
           </div>
@@ -187,10 +185,9 @@ export const CourseDetailsPage: React.FC<CourseDetailsPageProps> = ({ course, on
             <section>
               <h2 className="text-2xl font-bold text-foreground mb-6">Conheça seu Instrutor</h2>
               <div className="rounded-2xl border border-border bg-card p-6 shadow-card flex flex-col sm:flex-row gap-6">
-                <img
-                  src={course.instructor.avatar}
-                  alt={course.instructor.name}
-                  className="w-24 h-24 rounded-full object-cover ring-4 ring-border"
+                <InitialsAvatar
+                  name={course.instructor.name}
+                  className="h-24 w-24 text-2xl ring-4 ring-border"
                 />
                 <div>
                   <h3 className="text-xl font-bold text-foreground">{course.instructor.name}</h3>
@@ -209,30 +206,24 @@ export const CourseDetailsPage: React.FC<CourseDetailsPageProps> = ({ course, on
               
               {/* Enrollment Card */}
               <div className="rounded-2xl border border-border bg-card shadow-card overflow-hidden">
-                <div className="aspect-video relative overflow-hidden">
-                   <img
-                     src={course.thumbnail}
-                     alt={course.title}
-                     className="w-full h-full object-cover"
+                <div className="relative aspect-video">
+                   <CourseCover
+                     category={course.category}
+                     className="h-full w-full"
+                     iconSize={56}
                    />
-                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
-                      <div className="bg-card/95 backdrop-blur rounded-lg px-3 py-1 flex items-center gap-2 shadow-card">
-                         <PlayCircle size={16} className="text-primary fill-primary" />
-                         <span className="text-xs font-bold text-foreground">Prévia disponível</span>
-                      </div>
+                   <div className="absolute right-3 top-3">
+                      <Badge variant="secondary" className="bg-background/80 backdrop-blur">
+                         {course.category}
+                      </Badge>
                    </div>
                 </div>
 
                 <div className="p-6">
                    <div className="mb-6">
-                      <span className="text-muted-foreground text-sm line-through">R$ {(course.price * 1.5).toFixed(2).replace('.',',')}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-4xl font-extrabold text-teal">
-                           R$ {course.price.toFixed(2).replace('.',',')}
-                        </span>
-                        <Badge variant="teal">
-                           -33% OFF
-                        </Badge>
+                      <span className="text-xs text-muted-foreground">Investimento</span>
+                      <div className="text-4xl font-extrabold text-teal">
+                         R$ {course.price.toFixed(2).replace('.', ',')}
                       </div>
                    </div>
 
@@ -253,7 +244,9 @@ export const CourseDetailsPage: React.FC<CourseDetailsPageProps> = ({ course, on
                         <span className="flex items-center gap-2 text-muted-foreground">
                            <Award size={16} /> Certificado
                         </span>
-                        <span className="font-semibold text-foreground">Incluso (40h)</span>
+                        <span className="font-semibold text-foreground">
+                           Incluso{course.duration ? ` (${course.duration})` : ""}
+                        </span>
                      </div>
                      <div className="flex items-center justify-between text-sm">
                         <span className="flex items-center gap-2 text-muted-foreground">

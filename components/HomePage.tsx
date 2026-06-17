@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { Hero } from "./Hero";
 import { CourseCard } from "./CourseCard";
-import { COURSES } from "@/constants";
-import { Course, CourseCategory } from "@/types";
+import { Course } from "@/types";
 import { routeFor } from "@/lib/navigation";
 import {
   LayoutGrid,
@@ -73,18 +72,14 @@ const POS_CARDS = [
   },
 ];
 
-const HomePage: React.FC = () => {
+const HomePage: React.FC<{ featuredCourses: Course[] }> = ({
+  featuredCourses,
+}) => {
   const router = useRouter();
-  const [filterCategory] = useState<CourseCategory | "Todos">("Todos");
 
   const handleNavigate = (page: string) => router.push(routeFor(page));
   const handleViewCourse = (course: Course) =>
     router.push(`/cursos/${course.id}`);
-
-  const filteredCoursesHome =
-    filterCategory === "Todos"
-      ? COURSES
-      : COURSES.filter((c) => c.category === filterCategory);
 
   return (
     <>
@@ -145,15 +140,21 @@ const HomePage: React.FC = () => {
           </Button>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredCoursesHome.slice(0, 4).map((course) => (
-            <CourseCard
-              key={course.id}
-              course={course}
-              onViewDetails={handleViewCourse}
-            />
-          ))}
-        </div>
+        {featuredCourses.length > 0 ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {featuredCourses.slice(0, 4).map((course) => (
+              <CourseCard
+                key={course.id}
+                course={course}
+                onViewDetails={handleViewCourse}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center text-muted-foreground">
+            Novos cursos chegando em breve.
+          </div>
+        )}
       </section>
 
       {/* Banda EJA (destaque institucional escuro) */}

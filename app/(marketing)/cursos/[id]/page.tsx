@@ -1,20 +1,16 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import { notFound, useParams } from "next/navigation";
+import { notFound } from "next/navigation";
 import { CourseDetailsPage } from "@/components/CourseDetailsPage";
-import { COURSES } from "@/constants";
+import { getPublishedCourse } from "@/lib/catalog";
 
-export default function Page() {
-  const router = useRouter();
-  const params = useParams<{ id: string }>();
-  const course = COURSES.find((c) => c.id === params.id);
+export const dynamic = "force-dynamic";
 
-  if (!course) {
-    notFound();
-  }
-
-  return (
-    <CourseDetailsPage course={course} onBack={() => router.push("/cursos")} />
-  );
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const course = await getPublishedCourse(id);
+  if (!course) notFound();
+  return <CourseDetailsPage course={course} />;
 }

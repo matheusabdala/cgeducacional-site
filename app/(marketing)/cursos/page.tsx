@@ -1,14 +1,9 @@
-"use client";
-
-import { useRouter } from "next/navigation";
 import { CoursesPage } from "@/components/CoursesPage";
-import type { Course } from "@/types";
+import { getPublishedCourses } from "@/lib/catalog";
 
-export default function Page() {
-  const router = useRouter();
-  return (
-    <CoursesPage
-      onViewDetails={(course: Course) => router.push(`/cursos/${course.id}`)}
-    />
-  );
+export const dynamic = "force-dynamic";
+
+export default async function Page() {
+  const courses = await getPublishedCourses();
+  return <CoursesPage courses={courses} />;
 }

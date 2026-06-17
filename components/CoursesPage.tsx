@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Course, CourseCategory, CourseLevel } from '../types';
-import { COURSES } from '../constants';
 import { CourseCard } from './CourseCard';
 import { Search, Filter, BookOpen, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,10 +10,12 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 interface CoursesPageProps {
-  onViewDetails: (course: Course) => void;
+  courses: Course[];
 }
 
-export const CoursesPage: React.FC<CoursesPageProps> = ({ onViewDetails }) => {
+export const CoursesPage: React.FC<CoursesPageProps> = ({ courses }) => {
+  const router = useRouter();
+  const onViewDetails = (course: Course) => router.push(`/cursos/${course.id}`);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
@@ -29,7 +31,7 @@ export const CoursesPage: React.FC<CoursesPageProps> = ({ onViewDetails }) => {
   };
 
   const filteredCourses = useMemo(() => {
-    return COURSES.filter(course => {
+    return courses.filter(course => {
       const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             course.description.toLowerCase().includes(searchTerm.toLowerCase());
       
@@ -38,7 +40,7 @@ export const CoursesPage: React.FC<CoursesPageProps> = ({ onViewDetails }) => {
 
       return matchesSearch && matchesCategory && matchesLevel;
     });
-  }, [searchTerm, selectedCategories, selectedLevels]);
+  }, [courses, searchTerm, selectedCategories, selectedLevels]);
 
   const clearFilters = () => {
     setSearchTerm('');
