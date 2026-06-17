@@ -64,27 +64,29 @@ export const Footer: React.FC = () => {
             <h4 className="mb-4 font-semibold text-foreground">Institucional</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <a
-                  href="#"
+                <Link
+                  href="/login"
                   className="text-muted-foreground transition-colors hover:text-primary"
                 >
-                  Sobre Nós
-                </a>
+                  Área do Aluno
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/validar-certificado"
+                  className="text-muted-foreground transition-colors hover:text-primary"
+                >
+                  Validar Certificado
+                </Link>
               </li>
               <li>
                 <a
-                  href="#"
+                  href="https://wa.me/556792001722"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-muted-foreground transition-colors hover:text-primary"
                 >
-                  Contato
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground transition-colors hover:text-primary"
-                >
-                  Política de Privacidade
+                  Fale no WhatsApp
                 </a>
               </li>
             </ul>

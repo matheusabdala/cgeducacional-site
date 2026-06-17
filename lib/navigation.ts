@@ -14,7 +14,6 @@ export const NAV_ITEMS = [
   { id: "eja", label: "EJA Supletivo", href: "/eja" },
   { id: "graduation", label: "Graduação", href: "/graduacao" },
   { id: "postgraduation", label: "Pós-Graduação", href: "/pos-graduacao" },
-  { id: "certificate", label: "Validar Certificado", href: "/validar-certificado" },
 ] as const;
 
 export function routeFor(pageId: string): string {

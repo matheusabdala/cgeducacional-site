@@ -49,7 +49,7 @@ export const Header: React.FC = () => {
         {/* CTA + Theme + Mobile Toggle */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Link href="/validar-certificado" className="hidden lg:block">
+          <Link href="/login" className="hidden lg:block">
             <Button variant="ghost" size="sm">
               Área do Aluno
             </Button>

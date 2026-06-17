@@ -19,6 +19,7 @@ import {
   Brain,
   Sparkles,
   BookOpen,
+  Award,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -219,11 +220,15 @@ const HomePage: React.FC = () => {
                 className="relative rotate-2 cursor-pointer rounded-2xl bg-card p-2 shadow-2xl transition-transform duration-500 hover:rotate-0"
                 onClick={() => handleNavigate("eja")}
               >
-                <img
-                  src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=800"
-                  alt="Estudante feliz com certificado"
-                  className="aspect-[4/3] w-full max-w-md rounded-xl object-cover"
-                />
+                <div className="relative flex aspect-[4/3] w-full max-w-md items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-teal-500 via-teal-600 to-cg-800">
+                  <div className="absolute inset-0 bg-grid opacity-20" />
+                  <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+                  <GraduationCap
+                    className="text-white/90"
+                    size={72}
+                    strokeWidth={1.25}
+                  />
+                </div>
                 <div className="absolute -bottom-5 -left-5 flex items-center gap-3 rounded-xl glass p-4 shadow-card">
                   <div className="rounded-full bg-teal/15 p-2 text-teal">
                     <MonitorCheck size={20} />
@@ -249,11 +254,15 @@ const HomePage: React.FC = () => {
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div className="relative order-2 lg:order-1">
               <div className="relative z-10 rounded-2xl border border-border bg-card p-2 shadow-card">
-                <img
-                  src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=800"
-                  alt="Estudantes universitários"
-                  className="aspect-[4/3] w-full rounded-xl object-cover"
-                />
+                <div className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-cg-600 via-cg-700 to-cg-900">
+                  <div className="absolute inset-0 bg-grid opacity-20" />
+                  <div className="absolute -left-8 -bottom-10 h-32 w-32 rounded-full bg-teal-400/15 blur-2xl" />
+                  <University
+                    className="text-white/90"
+                    size={72}
+                    strokeWidth={1.25}
+                  />
+                </div>
               </div>
               <div className="absolute -bottom-6 -right-6 -z-10 h-32 w-32 rounded-full bg-primary/20 blur-2xl" />
               <div className="absolute -top-6 -left-6 -z-10 h-32 w-32 rounded-full bg-teal/20 blur-2xl" />
@@ -388,21 +397,26 @@ const HomePage: React.FC = () => {
               </div>
               <div className="grid grid-cols-2 gap-6 border-t border-white/10 bg-white/5 p-8 md:p-12 lg:border-l lg:border-t-0">
                 {[
-                  { value: "+50", label: "Escolas Parceiras" },
-                  { value: "98%", label: "Aprovação dos Prof." },
-                  { value: "24h", label: "Suporte Pedagógico" },
-                  { value: "Online", label: "100% Flexível" },
-                ].map((stat) => (
-                  <div
-                    key={stat.label}
-                    className="rounded-xl border border-white/5 bg-cg-900/50 p-6 backdrop-blur-sm"
-                  >
-                    <span className="mb-1 block text-3xl font-bold text-teal-300">
-                      {stat.value}
-                    </span>
-                    <span className="text-sm text-cg-200">{stat.label}</span>
-                  </div>
-                ))}
+                  { icon: Brain, label: "Formação baseada em neurociência" },
+                  { icon: MonitorCheck, label: "100% online e flexível" },
+                  { icon: Award, label: "Certificado ao concluir" },
+                  { icon: Zap, label: "Suporte pedagógico dedicado" },
+                ].map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <div
+                      key={item.label}
+                      className="rounded-xl border border-white/5 bg-cg-900/50 p-5 backdrop-blur-sm"
+                    >
+                      <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-teal-500/20 text-teal-300">
+                        <Icon size={18} />
+                      </span>
+                      <span className="text-sm font-medium text-cg-100">
+                        {item.label}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

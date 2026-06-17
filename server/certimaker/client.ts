@@ -68,6 +68,19 @@ interface CmTemplate {
   isPreset?: boolean;
 }
 
+export interface CmValidation {
+  id: string;
+  alunoNome: string;
+  alunoCpf: string;
+  cursoNome: string;
+  cargaHoraria: number;
+  professor?: string;
+  dataInicio?: string;
+  dataFim?: string;
+  dataEmissao?: string;
+  valid: boolean;
+}
+
 export const certimaker = {
   async createAluno(input: {
     nome: string;
@@ -136,6 +149,19 @@ export const certimaker = {
       body: JSON.stringify(input),
     });
     return { code: cert.id };
+  },
+
+  /** Validação pública de certificado (por código ou CPF). */
+  async validate(input: {
+    code?: string;
+    cpf?: string;
+  }): Promise<{ results: CmValidation[]; total: number }> {
+    const q = input.code
+      ? `code=${encodeURIComponent(input.code)}`
+      : `cpf=${encodeURIComponent(input.cpf ?? "")}`;
+    return cmFetch<{ results: CmValidation[]; total: number }>(
+      `/api/validar?${q}`,
+    );
   },
 
   pdfUrl(code: string, inline = false): string {

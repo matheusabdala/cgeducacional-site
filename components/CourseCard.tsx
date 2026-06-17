@@ -5,6 +5,8 @@ import { Course } from "../types";
 import { Clock, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CourseCover } from "@/components/ui/course-cover";
+import { InitialsAvatar } from "@/components/ui/initials-avatar";
 
 interface CourseCardProps {
   course: Course;
@@ -18,16 +20,14 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   return (
     <div className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition-all duration-300 ease-expo-out hover:-translate-y-1 hover:border-primary/30 hover:shadow-card-hover">
       <div
-        className="relative aspect-video cursor-pointer overflow-hidden bg-muted"
+        className="relative aspect-video cursor-pointer"
         onClick={() => onViewDetails(course)}
       >
-        <img
-          src={course.thumbnail}
-          alt={course.title}
-          className="h-full w-full object-cover transition-transform duration-500 ease-expo-out group-hover:scale-105"
-        />
+        <CourseCover category={course.category} className="h-full w-full" />
         <div className="absolute top-3 right-3">
-          <Badge variant="secondary">{course.category}</Badge>
+          <Badge variant="secondary" className="bg-background/80 backdrop-blur">
+            {course.category}
+          </Badge>
         </div>
       </div>
 
@@ -54,10 +54,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         </p>
 
         <div className="mb-4 flex items-center gap-3 border-t border-border pt-4">
-          <img
-            src={course.instructor.avatar}
-            alt={course.instructor.name}
-            className="h-8 w-8 rounded-full object-cover ring-1 ring-border"
+          <InitialsAvatar
+            name={course.instructor.name}
+            className="h-8 w-8 text-[10px]"
           />
           <div className="text-xs">
             <p className="font-medium text-foreground">
