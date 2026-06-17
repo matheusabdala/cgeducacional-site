@@ -14,9 +14,11 @@ import {
 } from "lucide-react";
 import { getAuthUser, getCurrentProfile } from "@/lib/auth";
 import { getCourseForLearner } from "@/lib/learn";
+import { prisma } from "@/lib/prisma";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CertificateCard } from "@/components/learn/certificate-card";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -55,6 +57,24 @@ export default async function CoursePage({
     ? `/aprender/${course.slug}/${course.resumeLessonId}`
     : null;
   const startedAny = course.done > 0;
+
+  // Certificado (só quando concluído e o aluno é o dono — não staff).
+  let cert: { code: string | null; certificateUrl: string | null } | null = null;
+  let hasCpf = false;
+  if (isDone && !isStaff) {
+    const [c, u] = await Promise.all([
+      prisma.certificate.findUnique({
+        where: { userId_courseId: { userId: user.id, courseId: course.id } },
+        select: { code: true, certificateUrl: true },
+      }),
+      prisma.user.findUnique({
+        where: { id: user.id },
+        select: { cpf: true },
+      }),
+    ]);
+    cert = c;
+    hasCpf = !!u?.cpf;
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -103,6 +123,15 @@ export default async function CoursePage({
           )}
         </div>
       </header>
+
+      {isDone && !isStaff && (
+        <CertificateCard
+          courseId={course.id}
+          initialCode={cert?.code ?? null}
+          initialPdfUrl={cert?.certificateUrl ?? null}
+          hasCpf={hasCpf}
+        />
+      )}
 
       {course.total === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-card/50 p-16 text-center">

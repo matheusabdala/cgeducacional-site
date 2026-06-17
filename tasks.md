@@ -90,10 +90,12 @@ Meta: começar só com **Google Drive (padrão, grátis)** + **YouTube unlisted 
 
 ## Fase 7 — Matrícula manual e Certificados
 
-- [ ] **Matrícula manual via admin**: no painel admin, listar alunos cadastrados e **ativar curso(s)** para um aluno (cria `Enrollment`); permitir remover.
+- [x] **Matrícula manual via admin** (feito na Fase 5: `/admin/alunos` ativa/remove `Enrollment`).
 - [ ] (Opcional) Aluno solicita acesso a um curso → fica pendente para o admin aprovar.
-- [ ] Geração de **certificado** (PDF) ao concluir; armazenar e expor link.
-- [ ] Integrar **validação de certificado** (página já existente) com dados reais.
+- [x] **CPF obrigatório no cadastro** (`User.cpf`, validação de dígitos) + setter p/ quem entrou via Google.
+- [x] Geração de **certificado** ao concluir o curso, via **integração Certimaker** (API key Bearer): espelha aluno/curso/turma (ids cacheados), emite o PDF e guarda código + URL pública no `Certificate`. Emissão **automática** ao atingir 100% + cartão "Emitir/Baixar" na página do curso. Idempotente; trata sem-CPF e sem-créditos. Migration `2_certimaker`.
+  - ⚙️ Requer `CERTIMAKER_API_URL` + `CERTIMAKER_API_KEY` no env (LMS + Coolify).
+- [ ] Integrar **validação de certificado** (página `/validar-certificado`) com o `/api/validar` público do Certimaker. _(próximo)_
 
 ## Fase 8 — Pagamentos (POSTERIOR — Mercado Pago, configurar API depois)
 

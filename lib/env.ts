@@ -39,4 +39,11 @@ export const serverEnv = {
     ),
   googleDriveFolderId: () =>
     required("GOOGLE_DRIVE_FOLDER_ID", process.env.GOOGLE_DRIVE_FOLDER_ID),
+  certimakerApiUrl: () =>
+    required("CERTIMAKER_API_URL", process.env.CERTIMAKER_API_URL).replace(
+      /\/$/,
+      "",
+    ),
+  certimakerApiKey: () =>
+    required("CERTIMAKER_API_KEY", process.env.CERTIMAKER_API_KEY),
 };

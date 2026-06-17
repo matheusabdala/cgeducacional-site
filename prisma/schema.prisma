@@ -49,6 +49,8 @@ model User {
   role      Role     @default(student)
   avatarUrl String?
   bio       String?
+  cpf       String?  @unique // 11 dígitos (sem máscara) — exigido no cadastro
+  certimakerAlunoId String? // id do aluno espelhado no Certimaker
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -80,6 +82,9 @@ model Course {
   dripEnabled       Boolean      @default(false) // libera X aulas e o resto após N dias
   dripInitialCount  Int          @default(0) // quantas aulas liberadas de imediato
   dripDelayDays     Int          @default(7) // dias até liberar o restante
+  // Espelho no Certimaker (cache, p/ não recriar a cada emissão)
+  certimakerCursoId String?
+  certimakerTurmaId String?
   instructorId    String         @db.Uuid
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -167,7 +172,8 @@ model Certificate {
   userId         String   @db.Uuid
   courseId       String
   issuedAt       DateTime @default(now())
-  certificateUrl String?
+  certificateUrl String? // URL pública do PDF (Certimaker)
+  code           String? // código de validação (8 chars) do Certimaker
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)

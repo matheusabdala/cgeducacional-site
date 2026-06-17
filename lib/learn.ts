@@ -250,6 +250,7 @@ export async function getCourseForLearner(
 // --- Página da aula -----------------------------------------------------
 
 export interface LearnerLesson {
+  courseId: string;
   courseSlug: string;
   courseTitle: string;
   lesson: {
@@ -317,6 +318,7 @@ export async function getLessonForLearner(
   });
 
   return {
+    courseId: course.id,
     courseSlug: course.slug,
     courseTitle: course.title,
     lesson: {

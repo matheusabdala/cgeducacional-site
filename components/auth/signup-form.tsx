@@ -10,6 +10,7 @@ import { GoogleButton } from "@/components/auth/google-button";
 import { AuthDivider, FieldError, FormBanner } from "@/components/auth/form-bits";
 import { signUpAction } from "@/app/(auth)/actions";
 import { signUpSchema, type SignUpInput } from "@/lib/validations/auth";
+import { formatCpf } from "@/lib/cpf";
 
 export function SignupForm({ next }: { next?: string }) {
   const [serverError, setServerError] = React.useState<string | null>(null);
@@ -20,7 +21,13 @@ export function SignupForm({ next }: { next?: string }) {
     formState: { errors, isSubmitting },
   } = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: {
+      name: "",
+      email: "",
+      cpf: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
   async function onSubmit(values: SignUpInput) {
@@ -63,6 +70,29 @@ export function SignupForm({ next }: { next?: string }) {
             {...register("email")}
           />
           <FieldError message={errors.email?.message} />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="cpf">CPF</Label>
+          {(() => {
+            const cpfReg = register("cpf");
+            return (
+              <Input
+                id="cpf"
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="000.000.000-00"
+                name={cpfReg.name}
+                ref={cpfReg.ref}
+                onBlur={cpfReg.onBlur}
+                onChange={(e) => {
+                  e.target.value = formatCpf(e.target.value);
+                  cpfReg.onChange(e);
+                }}
+              />
+            );
+          })()}
+          <FieldError message={errors.cpf?.message} />
         </div>
 
         <div className="space-y-1.5">

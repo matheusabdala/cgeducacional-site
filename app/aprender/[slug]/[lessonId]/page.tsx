@@ -71,6 +71,7 @@ export default async function LessonPage({
           ) : (
             <LessonView
               lessonId={data.lesson.id}
+              courseId={data.courseId}
               courseSlug={slug}
               title={data.lesson.title}
               description={data.lesson.description}

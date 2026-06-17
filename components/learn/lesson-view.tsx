@@ -21,9 +21,11 @@ import {
   markLessonComplete,
   markLessonIncomplete,
 } from "@/app/aprender/actions";
+import { issueCertificate } from "@/app/aprender/certificate-actions";
 
 export function LessonView({
   lessonId,
+  courseId,
   courseSlug,
   title,
   description,
@@ -37,6 +39,7 @@ export function LessonView({
   nextLessonId,
 }: {
   lessonId: string;
+  courseId: string;
   courseSlug: string;
   title: string;
   description: string | null;
@@ -76,6 +79,19 @@ export function LessonView({
     };
   }, [lessonId]);
 
+  const tryIssueCertificate = React.useCallback(async () => {
+    const r = await issueCertificate(courseId);
+    if (r.ok && r.pdfUrl) {
+      toast.success("Certificado disponível! 🎓", {
+        description: "Veja na página do curso.",
+      });
+    } else if (r.needsCpf) {
+      toast.message(
+        "Adicione seu CPF na página do curso para emitir o certificado.",
+      );
+    }
+  }, [courseId]);
+
   async function toggleComplete() {
     const next = !completed;
     setCompleted(next);
@@ -89,17 +105,25 @@ export function LessonView({
       setCompleted(!next);
       return;
     }
-    if (next && r.courseCompleted) toast.success("🎉 Curso concluído! Parabéns.");
-    else toast.success(next ? "Aula concluída" : "Marcada como não concluída");
+    if (next && r.courseCompleted) {
+      toast.success("🎉 Curso concluído! Parabéns.");
+      void tryIssueCertificate();
+    } else {
+      toast.success(next ? "Aula concluída" : "Marcada como não concluída");
+    }
     router.refresh();
   }
 
   const onEnded = React.useCallback(() => {
     setCompleted((c) => {
-      if (!c) void markLessonComplete(lessonId).then(() => router.refresh());
+      if (!c)
+        void markLessonComplete(lessonId).then((r) => {
+          if (r?.courseCompleted) void tryIssueCertificate();
+          router.refresh();
+        });
       return true;
     });
-  }, [lessonId, router]);
+  }, [lessonId, router, tryIssueCertificate]);
 
   const docUrl = `/api/material/${lessonId}?which=document&inline=1`;
 

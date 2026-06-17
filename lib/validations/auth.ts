@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidCpf } from "@/lib/cpf";
 
 /** Schemas Zod compartilhados entre cliente (RHF) e servidor (Server Actions). */
 
@@ -11,6 +12,10 @@ export const signUpSchema = z
   .object({
     name: z.string().min(2, "Informe seu nome completo"),
     email: z.string().min(1, "Informe seu e-mail").email("E-mail inválido"),
+    cpf: z
+      .string()
+      .min(1, "Informe seu CPF")
+      .refine((v) => isValidCpf(v), "CPF inválido"),
     password: z.string().min(8, "A senha deve ter ao menos 8 caracteres"),
     confirmPassword: z.string().min(1, "Confirme sua senha"),
   })

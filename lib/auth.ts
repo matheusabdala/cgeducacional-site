@@ -38,6 +38,7 @@ export async function ensureProfile(authUser: SupabaseUser): Promise<User> {
     "Aluno";
   const avatarUrl =
     (meta.avatar_url as string) || (meta.picture as string) || null;
+  const cpf = (meta.cpf as string) || null; // já vem limpo do cadastro
 
   return prisma.user.upsert({
     where: { id: authUser.id },
@@ -50,6 +51,7 @@ export async function ensureProfile(authUser: SupabaseUser): Promise<User> {
       email: authUser.email ?? `${authUser.id}@sem-email.local`,
       name,
       avatarUrl,
+      ...(cpf ? { cpf } : {}),
       // role padrão = student (ver schema)
     },
   });

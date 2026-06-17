@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { cleanCpf } from "@/lib/cpf";
 import {
   signInSchema,
   signUpSchema,
@@ -56,7 +58,16 @@ export async function signUpAction(values: unknown): Promise<AuthState> {
     return { error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
   }
 
-  const { name, email, password } = parsed.data;
+  const { name, email, password, cpf } = parsed.data;
+  const cleanedCpf = cleanCpf(cpf);
+
+  // CPF é único por aluno.
+  const cpfTaken = await prisma.user.findUnique({
+    where: { cpf: cleanedCpf },
+    select: { id: true },
+  });
+  if (cpfTaken) return { error: "Este CPF já está cadastrado." };
+
   const supabase = await createClient();
   const origin = await getOrigin();
 
@@ -64,7 +75,7 @@ export async function signUpAction(values: unknown): Promise<AuthState> {
     email,
     password,
     options: {
-      data: { full_name: name },
+      data: { full_name: name, cpf: cleanedCpf },
       emailRedirectTo: `${origin}/auth/callback`,
     },
   });
