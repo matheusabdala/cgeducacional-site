@@ -9,6 +9,8 @@ import {
   CertimakerError,
   InsufficientCreditsError,
 } from "@/server/certimaker/client";
+import { sendEmail } from "@/server/email";
+import { certificateEmail } from "@/server/email/templates";
 
 type IssueResult = {
   ok?: boolean;
@@ -156,6 +158,17 @@ export async function issueCertificate(courseId: string): Promise<IssueResult> {
       create: { userId: user.id, courseId, code, certificateUrl: pdfUrl },
       update: { code, certificateUrl: pdfUrl },
     });
+
+    // Avisa o aluno com o link do PDF (não bloqueia / não lança).
+    if (user.email) {
+      const mail = certificateEmail({
+        name: user.name,
+        courseTitle: course.title,
+        pdfUrl,
+        code,
+      });
+      await sendEmail({ to: user.email, ...mail });
+    }
 
     revalidatePath("/aprender", "layout");
     return { ok: true, code, pdfUrl };

@@ -1,5 +1,6 @@
 import { getCurrentProfile } from "@/lib/auth";
 import { getStorageProvider } from "@/server/media";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +9,15 @@ export async function POST(request: Request) {
   const profile = await getCurrentProfile();
   if (!profile || (profile.role !== "admin" && profile.role !== "instructor")) {
     return Response.json({ error: "Sem permissão" }, { status: 403 });
+  }
+
+  // Contém abuso/runaway: até 40 uploads por 5 min por usuário.
+  const rl = rateLimit(`upload:${profile.id}`, 40, 5 * 60_000);
+  if (!rl.ok) {
+    return Response.json(
+      { error: "Muitos uploads em sequência. Aguarde alguns instantes." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+    );
   }
 
   const form = await request.formData();

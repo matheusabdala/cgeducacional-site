@@ -95,7 +95,7 @@ Meta: começar só com **Google Drive (padrão, grátis)** + **YouTube unlisted 
 - [x] **CPF obrigatório no cadastro** (`User.cpf`, validação de dígitos) + setter p/ quem entrou via Google.
 - [x] Geração de **certificado** ao concluir o curso, via **integração Certimaker** (API key Bearer): espelha aluno/curso/turma (ids cacheados), emite o PDF e guarda código + URL pública no `Certificate`. Emissão **automática** ao atingir 100% + cartão "Emitir/Baixar" na página do curso. Idempotente; trata sem-CPF e sem-créditos. Migration `2_certimaker`.
   - ⚙️ Requer `CERTIMAKER_API_URL` + `CERTIMAKER_API_KEY` no env (LMS + Coolify).
-- [ ] Integrar **validação de certificado** (página `/validar-certificado`) com o `/api/validar` público do Certimaker. _(próximo)_
+- [x] Integrar **validação de certificado** (página `/validar-certificado`) com o `/api/validar` público do Certimaker (`validateCertificate` em `(marketing)/validar-certificado/actions.ts`).
 
 ## Fase 8 — Pagamentos (POSTERIOR — Mercado Pago, configurar API depois)
 
@@ -107,11 +107,11 @@ Meta: começar só com **Google Drive (padrão, grátis)** + **YouTube unlisted 
 
 ## Fase 9 — Qualidade, observabilidade e deploy
 
-- [ ] **Email transacional** (Resend): confirmação de conta, recibo de matrícula, certificado emitido.
+- [~] **Email transacional** (Resend): abstração `server/email` (HTTP, sem dep extra, **degradação graciosa** sem `RESEND_API_KEY`) + templates. Plugado em **matrícula confirmada** (`/admin/alunos`) e **certificado emitido** (`/aprender`). _Falta confirmação de conta (gerida pelo Supabase) e a chave/domínio verificados no Resend._
 - [ ] Testes: unitários nas Server Actions/providers; e2e do fluxo aluno (Playwright).
-- [ ] Logs/erros (ex.: Sentry) e healthcheck para o Coolify.
+- [x] **Healthcheck** `/api/health` (liveness 200 + status do banco no corpo; não derruba o container em blip do Supabase). _Falta plugar logs/erros (ex.: Sentry)._
 - [ ] Pipeline de deploy no Coolify documentado (migrations no deploy, variáveis de ambiente).
-- [ ] Revisão de segurança final (RLS, exposição de segredos, rate limit nas rotas de upload).
+- [~] Revisão de segurança: **rate limit no upload** (`lib/rate-limit.ts`, 40/5min por usuário em `/api/admin/upload`). _Falta varredura final de RLS/segredos._
 
 ---
 

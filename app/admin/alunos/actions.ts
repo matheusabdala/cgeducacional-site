@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
+import { siteUrl } from "@/lib/site";
+import { sendEmail } from "@/server/email";
+import { enrollmentEmail } from "@/server/email/templates";
 
 type Result = { error?: string; ok?: boolean };
 
@@ -37,20 +40,39 @@ export async function enrollUserInCourse(
   const d = parsed.data;
 
   const [user, course] = await Promise.all([
-    prisma.user.findUnique({ where: { id: d.userId }, select: { id: true } }),
+    prisma.user.findUnique({
+      where: { id: d.userId },
+      select: { id: true, name: true, email: true },
+    }),
     prisma.course.findUnique({
       where: { id: d.courseId },
-      select: { id: true },
+      select: { id: true, title: true, slug: true },
     }),
   ]);
   if (!user) return { error: "Aluno não encontrado" };
   if (!course) return { error: "Curso não encontrado" };
+
+  // A matrícula já existia? (para não reenviar e-mail em re-execuções idempotentes)
+  const already = await prisma.enrollment.findUnique({
+    where: { userId_courseId: { userId: d.userId, courseId: d.courseId } },
+    select: { id: true },
+  });
 
   await prisma.enrollment.upsert({
     where: { userId_courseId: { userId: d.userId, courseId: d.courseId } },
     update: {},
     create: { userId: d.userId, courseId: d.courseId },
   });
+
+  // Notifica o aluno apenas quando a matrícula é nova (não bloqueia o fluxo).
+  if (!already && user.email) {
+    const mail = enrollmentEmail({
+      name: user.name,
+      courseTitle: course.title,
+      url: `${siteUrl()}/aprender/${course.slug}`,
+    });
+    await sendEmail({ to: user.email, ...mail });
+  }
 
   revalidateEnrollmentPaths(d.userId);
   return { ok: true };
