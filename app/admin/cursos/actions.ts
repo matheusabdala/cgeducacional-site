@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
+import { certimaker } from "@/server/certimaker/client";
 import {
   courseSchema,
   moduleSchema,
@@ -11,6 +12,22 @@ import {
 } from "@/lib/validations/course";
 
 type Result = { error?: string; ok?: boolean };
+
+/** Gera uma URL de SSO para abrir o criador de modelos no Certimaker. */
+export async function openCertimakerCreator(): Promise<{
+  url?: string;
+  error?: string;
+}> {
+  await requireRole(["admin", "instructor"], "/admin");
+  try {
+    const url = await certimaker.ssoLink("/modelos");
+    return { url };
+  } catch (e) {
+    return {
+      error: e instanceof Error ? e.message : "Falha ao abrir o Certimaker",
+    };
+  }
+}
 
 function slugify(text: string): string {
   return text
@@ -69,6 +86,7 @@ export async function createCourse(values: unknown): Promise<Result> {
       dripEnabled: d.dripEnabled,
       dripInitialCount: d.dripInitialCount,
       dripDelayDays: d.dripDelayDays,
+      certimakerTemplateId: d.certimakerTemplateId || null,
       instructorId: profile.id,
     },
   });
@@ -101,6 +119,7 @@ export async function updateCourse(
       dripEnabled: d.dripEnabled,
       dripInitialCount: d.dripInitialCount,
       dripDelayDays: d.dripDelayDays,
+      certimakerTemplateId: d.certimakerTemplateId || null,
     },
   });
   revalidatePath(`/admin/cursos/${id}`);

@@ -139,6 +139,24 @@ export const certimaker = {
     return chosen.id;
   },
 
+  /** Lista os modelos disponíveis (para o seletor "modelo por curso"). */
+  async listTemplates(): Promise<CmTemplate[]> {
+    const res = await cmFetch<{ data: CmTemplate[] }>("/api/modelos");
+    return res.data ?? [];
+  },
+
+  /**
+   * Gera uma URL de SSO de uso curto para abrir o Certimaker já autenticado
+   * (ex.: o criador de modelos). Requer o endpoint /api/sso/link no Certimaker.
+   */
+  async ssoLink(to = "/modelos"): Promise<string> {
+    const res = await cmFetch<{ url: string }>("/api/sso/link", {
+      method: "POST",
+      body: JSON.stringify({ to }),
+    });
+    return res.url;
+  },
+
   async issueCertificate(input: {
     alunoId: string;
     turmaId: string;

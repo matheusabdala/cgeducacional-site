@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm, Controller, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Image as ImageIcon, Lock } from "lucide-react";
+import { Image as ImageIcon, Lock, Award, ExternalLink } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,13 @@ import {
   COURSE_LEVELS,
   type CourseInput,
 } from "@/lib/validations/course";
-import { createCourse, updateCourse } from "@/app/admin/cursos/actions";
+import {
+  createCourse,
+  updateCourse,
+  openCertimakerCreator,
+} from "@/app/admin/cursos/actions";
+
+export type CertTemplate = { id: string; name: string; isPreset?: boolean };
 
 const EMPTY: CourseInput = {
   title: "",
@@ -39,17 +45,22 @@ const EMPTY: CourseInput = {
   dripEnabled: false,
   dripInitialCount: 0,
   dripDelayDays: 7,
+  certimakerTemplateId: "",
 };
 
 export function CourseForm({
   mode,
   courseId,
   defaultValues,
+  templates,
 }: {
   mode: "create" | "edit";
   courseId?: string;
   defaultValues?: Partial<CourseInput>;
+  /** Modelos do Certimaker; ausente = seção de certificado oculta. */
+  templates?: CertTemplate[];
 }) {
+  const [openingCreator, setOpeningCreator] = React.useState(false);
   const {
     register,
     handleSubmit,
@@ -69,6 +80,21 @@ export function CourseForm({
     if (result?.error) toast.error(result.error);
     else if (mode === "edit") toast.success("Curso atualizado");
     // create redireciona para o editor.
+  }
+
+  async function handleOpenCreator() {
+    // Abre a aba já no clique (evita bloqueio de popup) e navega após o SSO.
+    const win = window.open("about:blank", "_blank");
+    setOpeningCreator(true);
+    const res = await openCertimakerCreator();
+    setOpeningCreator(false);
+    if (res.error || !res.url) {
+      win?.close();
+      toast.error(res.error ?? "Não foi possível abrir o Certimaker");
+      return;
+    }
+    if (win) win.location.href = res.url;
+    else window.open(res.url, "_blank");
   }
 
   return (
@@ -246,6 +272,61 @@ export function CourseForm({
           )}
         </div>
       </div>
+
+      {/* Certificado (modelo por curso + atalho ao criador do Certimaker) */}
+      {templates && (
+        <div className="space-y-4 rounded-xl border border-border bg-secondary/20 p-4">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Award size={16} className="text-muted-foreground" /> Certificado
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Modelo do certificado</Label>
+            <Controller
+              control={control}
+              name="certimakerTemplateId"
+              render={({ field }) => (
+                <Select
+                  value={field.value || "__default__"}
+                  onValueChange={(v) =>
+                    field.onChange(v === "__default__" ? "" : v)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Padrão (automático)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__default__">
+                      Padrão (automático)
+                    </SelectItem>
+                    {templates.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name}
+                        {t.isPreset ? " · preset" : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            <p className="text-xs text-muted-foreground">
+              Modelo usado ao emitir o certificado deste curso. “Padrão” deixa o
+              Certimaker escolher.
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleOpenCreator}
+            disabled={openingCreator}
+            className="gap-2"
+          >
+            <ExternalLink size={15} />
+            {openingCreator ? "Abrindo…" : "Criar/editar modelos no Certimaker"}
+          </Button>
+        </div>
+      )}
 
       <div className="flex justify-end">
         <Button type="submit" disabled={isSubmitting}>

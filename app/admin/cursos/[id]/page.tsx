@@ -3,6 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { certimaker } from "@/server/certimaker/client";
+import type { CertTemplate } from "@/components/admin/course-form";
 import { Badge } from "@/components/ui/badge";
 import { CourseForm } from "@/components/admin/course-form";
 import { CourseBuilder } from "@/components/admin/course-builder";
@@ -31,6 +33,14 @@ export default async function EditarCursoPage({
   if (!course) notFound();
   if (profile?.role !== "admin" && course.instructorId !== profile?.id) {
     redirect("/admin/cursos");
+  }
+
+  // Modelos do Certimaker p/ o seletor (oculta a seção se indisponível).
+  let templates: CertTemplate[] | undefined;
+  try {
+    templates = await certimaker.listTemplates();
+  } catch {
+    templates = undefined;
   }
 
   return (
@@ -82,7 +92,9 @@ export default async function EditarCursoPage({
             dripEnabled: course.dripEnabled,
             dripInitialCount: course.dripInitialCount,
             dripDelayDays: course.dripDelayDays,
+            certimakerTemplateId: course.certimakerTemplateId ?? "",
           }}
+          templates={templates}
         />
       </section>
 

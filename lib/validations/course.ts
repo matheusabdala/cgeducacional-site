@@ -31,6 +31,8 @@ export const courseSchema = z.object({
   dripEnabled: z.boolean().default(false),
   dripInitialCount: z.coerce.number().int().min(0).default(0),
   dripDelayDays: z.coerce.number().int().min(0).default(7),
+  // Modelo de certificado (id no Certimaker). "" = usar o padrão.
+  certimakerTemplateId: z.string().optional().or(z.literal("")),
 });
 
 export const moduleSchema = z.object({

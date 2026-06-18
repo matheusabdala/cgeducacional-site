@@ -77,6 +77,7 @@ export async function issueCertificate(courseId: string): Promise<IssueResult> {
       durationLabel: true,
       certimakerCursoId: true,
       certimakerTurmaId: true,
+      certimakerTemplateId: true,
       instructor: { select: { name: true } },
     },
   });
@@ -144,8 +145,9 @@ export async function issueCertificate(courseId: string): Promise<IssueResult> {
       });
     }
 
-    // 4) Modelo + emissão
-    const templateId = await certimaker.defaultTemplateId();
+    // 4) Modelo (o do curso, se definido; senão o padrão) + emissão
+    const templateId =
+      course.certimakerTemplateId ?? (await certimaker.defaultTemplateId());
     const { code } = await certimaker.issueCertificate({
       alunoId,
       turmaId,

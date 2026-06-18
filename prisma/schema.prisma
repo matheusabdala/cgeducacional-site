@@ -85,6 +85,7 @@ model Course {
   // Espelho no Certimaker (cache, p/ não recriar a cada emissão)
   certimakerCursoId String?
   certimakerTurmaId String?
+  certimakerTemplateId String? // modelo do certificado deste curso (null = padrão)
   instructorId    String         @db.Uuid
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
