@@ -75,6 +75,10 @@ export async function issueCertificate(courseId: string): Promise<IssueResult> {
       title: true,
       description: true,
       durationLabel: true,
+      programContent: true,
+      workloadHours: true,
+      modality: true,
+      location: true,
       certimakerCursoId: true,
       certimakerTurmaId: true,
       certimakerTemplateId: true,
@@ -115,15 +119,19 @@ export async function issueCertificate(courseId: string): Promise<IssueResult> {
         _sum: { durationSeconds: true },
       });
       const fromLabel = course.durationLabel?.match(/(\d+)/)?.[1];
-      const cargaHoraria = fromLabel
-        ? Math.max(1, parseInt(fromLabel, 10))
-        : Math.max(1, Math.round((sum._sum.durationSeconds ?? 0) / 3600));
+      const cargaHoraria =
+        course.workloadHours && course.workloadHours > 0
+          ? course.workloadHours
+          : fromLabel
+            ? Math.max(1, parseInt(fromLabel, 10))
+            : Math.max(1, Math.round((sum._sum.durationSeconds ?? 0) / 3600));
       cursoId = await certimaker.createCurso({
         nome: course.title,
         cargaHoraria,
-        modalidade: "online",
+        modalidade: course.modality,
         professor: course.instructor?.name,
-        conteudoProgramatico: course.description,
+        conteudoProgramatico: course.programContent || course.description,
+        localCurso: course.location || undefined,
       });
       await prisma.course.update({
         where: { id: courseId },

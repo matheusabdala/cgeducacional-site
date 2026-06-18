@@ -42,6 +42,12 @@ enum VideoProvider {
   youtube
 }
 
+enum CourseModality {
+  online
+  presencial
+  hibrido
+}
+
 model User {
   id        String   @id @db.Uuid // = Supabase auth.users.id
   email     String   @unique
@@ -73,10 +79,15 @@ model Course {
   category        CourseCategory
   level           CourseLevel    @default(iniciante)
   price           Decimal        @default(0) @db.Decimal(10, 2)
-  durationLabel   String? // ex.: "40h"
+  durationLabel   String? // ex.: "40h" (rótulo livre p/ exibição)
   rating          Float          @default(0)
   studentsCount   Int            @default(0)
   published       Boolean        @default(false)
+  // Dados acadêmicos (espelham o Curso do Certimaker — usados no certificado)
+  programContent  String? // conteúdo programático / ementa
+  workloadHours   Int? // carga horária em horas
+  modality        CourseModality @default(online)
+  location        String? // local (presencial/híbrido)
   // Liberação de conteúdo (opcional, por curso)
   requireSequential Boolean      @default(false) // trava aula até concluir a anterior
   dripEnabled       Boolean      @default(false) // libera X aulas e o resto após N dias

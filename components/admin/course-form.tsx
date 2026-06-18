@@ -4,7 +4,13 @@ import * as React from "react";
 import { useForm, Controller, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Image as ImageIcon, Lock, Award, ExternalLink } from "lucide-react";
+import {
+  Image as ImageIcon,
+  Lock,
+  Award,
+  ExternalLink,
+  GraduationCap,
+} from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +28,7 @@ import {
   courseSchema,
   COURSE_CATEGORIES,
   COURSE_LEVELS,
+  COURSE_MODALITIES,
   type CourseInput,
 } from "@/lib/validations/course";
 import {
@@ -41,6 +48,9 @@ const EMPTY: CourseInput = {
   price: 0,
   durationLabel: "",
   thumbnailUrl: "",
+  programContent: "",
+  modality: "online",
+  location: "",
   requireSequential: false,
   dripEnabled: false,
   dripInitialCount: 0,
@@ -197,6 +207,71 @@ export function CourseForm({
           </div>
           <ThumbPreview url={watch("thumbnailUrl")} />
         </div>
+      </div>
+
+      {/* Dados acadêmicos (espelham o Curso do Certimaker; vão no certificado) */}
+      <div className="space-y-4 rounded-xl border border-border bg-secondary/20 p-4">
+        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+          <GraduationCap size={16} className="text-muted-foreground" /> Dados
+          acadêmicos
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="programContent">Conteúdo programático</Label>
+          <Textarea
+            id="programContent"
+            rows={4}
+            placeholder="Tópicos / ementa do curso (aparece no certificado)"
+            {...register("programContent")}
+          />
+          <FieldError message={errors.programContent?.message} />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="workloadHours">Carga horária (h)</Label>
+            <Input
+              id="workloadHours"
+              type="number"
+              min="0"
+              placeholder="Ex.: 40"
+              {...register("workloadHours")}
+            />
+            <FieldError message={errors.workloadHours?.message} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Modalidade</Label>
+            <Controller
+              control={control}
+              name="modality"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COURSE_MODALITIES.map((m) => (
+                      <SelectItem key={m.value} value={m.value}>
+                        {m.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+        </div>
+
+        {watch("modality") !== "online" && (
+          <div className="space-y-1.5">
+            <Label htmlFor="location">Local</Label>
+            <Input
+              id="location"
+              placeholder="Cidade / endereço (presencial ou híbrido)"
+              {...register("location")}
+            />
+          </div>
+        )}
       </div>
 
       {/* Liberação de conteúdo (opcional) */}

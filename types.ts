@@ -45,6 +45,10 @@ export interface Course {
   students: number;
   instructor: Instructor;
   syllabus?: SyllabusModule[];
+  // Dados acadêmicos (opcionais)
+  programContent?: string; // conteúdo programático / ementa (texto)
+  workloadHours?: number; // carga horária em horas
+  modality?: string; // rótulo: "Online" | "Presencial" | "Híbrido"
 }
 
 export interface ChatMessage {

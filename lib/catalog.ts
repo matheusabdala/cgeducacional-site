@@ -18,6 +18,11 @@ const LVL: Record<string, CourseLevel> = {
   intermediario: CourseLevel.Intermediario,
   avancado: CourseLevel.Avancado,
 };
+const MODALITY: Record<string, string> = {
+  online: "Online",
+  presencial: "Presencial",
+  hibrido: "Híbrido",
+};
 
 function fmtDuration(s: number | null): string {
   if (!s) return "";
@@ -38,6 +43,9 @@ type DbCourse = {
   level: string;
   price: unknown; // Prisma.Decimal
   durationLabel: string | null;
+  programContent: string | null;
+  workloadHours: number | null;
+  modality: string | null;
   rating: number;
   studentsCount: number;
   instructorId: string;
@@ -60,6 +68,9 @@ function toView(c: DbCourse, withSyllabus = false): Course {
     modules: c.modules?.length ?? c._count?.modules ?? 0,
     rating: c.rating ?? 0,
     students: c.studentsCount ?? 0,
+    programContent: c.programContent ?? undefined,
+    workloadHours: c.workloadHours ?? undefined,
+    modality: c.modality ? (MODALITY[c.modality] ?? c.modality) : undefined,
     instructor: {
       id: c.instructorId,
       name: c.instructor?.name ?? "Equipe CG",

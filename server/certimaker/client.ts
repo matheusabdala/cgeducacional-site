@@ -107,9 +107,10 @@ export const certimaker = {
   async createCurso(input: {
     nome: string;
     cargaHoraria: number;
-    modalidade: "presencial" | "online";
+    modalidade: "presencial" | "online" | "hibrido";
     professor?: string;
     conteudoProgramatico?: string;
+    localCurso?: string;
   }): Promise<string> {
     const curso = await cmFetch<CmId>("/api/cursos", {
       method: "POST",

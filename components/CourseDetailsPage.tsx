@@ -21,7 +21,8 @@ import {
   ArrowLeft,
   Share2,
   ShieldCheck,
-  User
+  User,
+  Monitor
 } from 'lucide-react';
 
 interface CourseDetailsPageProps {
@@ -80,6 +81,12 @@ export const CourseDetailsPage: React.FC<CourseDetailsPageProps> = ({ course }) 
                 <Book size={18} />
                 <span>{course.modules} módulos</span>
               </div>
+              {course.modality && (
+                <div className="flex items-center gap-2">
+                  <Monitor size={18} />
+                  <span>{course.modality}</span>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <User size={18} />
                 <span>Por {course.instructor.name}</span>
@@ -130,6 +137,21 @@ export const CourseDetailsPage: React.FC<CourseDetailsPageProps> = ({ course }) 
               <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
                 <Book className="text-primary" /> Conteúdo Programático
               </h2>
+
+              {(course.programContent || course.workloadHours) && (
+                <div className="mb-6 rounded-2xl border border-border bg-card p-6 shadow-card">
+                  {course.workloadHours ? (
+                    <p className="mb-3 text-sm font-medium text-foreground">
+                      Carga horária: {course.workloadHours}h
+                    </p>
+                  ) : null}
+                  {course.programContent ? (
+                    <p className="whitespace-pre-line leading-relaxed text-muted-foreground">
+                      {course.programContent}
+                    </p>
+                  ) : null}
+                </div>
+              )}
 
               <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-card">
                 {course.syllabus && course.syllabus.length > 0 ? (

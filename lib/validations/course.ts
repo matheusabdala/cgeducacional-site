@@ -13,6 +13,12 @@ export const COURSE_LEVELS = [
   { value: "avancado", label: "Avançado" },
 ] as const;
 
+export const COURSE_MODALITIES = [
+  { value: "online", label: "Online" },
+  { value: "presencial", label: "Presencial" },
+  { value: "hibrido", label: "Híbrido" },
+] as const;
+
 export const courseSchema = z.object({
   title: z.string().min(3, "Título muito curto"),
   description: z.string().min(10, "Descrição muito curta (mín. 10 caracteres)"),
@@ -26,6 +32,14 @@ export const courseSchema = z.object({
     .url("URL inválida")
     .optional()
     .or(z.literal("")),
+  // Dados acadêmicos (espelham o Curso do Certimaker)
+  programContent: z.string().optional().or(z.literal("")),
+  workloadHours: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : v),
+    z.coerce.number().int().min(0).optional(),
+  ),
+  modality: z.enum(["online", "presencial", "hibrido"]).default("online"),
+  location: z.string().optional().or(z.literal("")),
   // Liberação de conteúdo (opcional)
   requireSequential: z.boolean().default(false),
   dripEnabled: z.boolean().default(false),
