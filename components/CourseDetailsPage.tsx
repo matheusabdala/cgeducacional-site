@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CourseCover } from '@/components/ui/course-cover';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
-import { createWhatsAppLink } from '../constants';
 import { 
   Clock, 
   Book, 
@@ -253,9 +252,9 @@ export const CourseDetailsPage: React.FC<CourseDetailsPageProps> = ({ course }) 
                       size="lg"
                       variant="glow"
                       className="w-full mb-3 text-lg"
-                      onClick={() => window.open(createWhatsAppLink(`Olá, gostaria de comprar o curso ${course.title}.`), "_blank")}
+                      asChild
                    >
-                      Comprar Agora
+                      <Link href={`/checkout/${course.id}`}>Comprar Agora</Link>
                    </Button>
                    <p className="text-xs text-center text-muted-foreground mb-6">
                      Garantia de 7 dias ou seu dinheiro de volta.

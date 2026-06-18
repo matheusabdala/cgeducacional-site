@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   BookOpen,
   Users,
+  ShoppingBag,
   GraduationCap,
   Menu,
   X,
@@ -31,6 +32,7 @@ const NAV = [
   { href: "/admin", label: "Visão geral", icon: LayoutDashboard, exact: true },
   { href: "/admin/cursos", label: "Cursos", icon: BookOpen },
   { href: "/admin/alunos", label: "Alunos", icon: Users },
+  { href: "/admin/compras", label: "Compras", icon: ShoppingBag },
 ];
 
 const ROLE_LABEL: Record<string, string> = {

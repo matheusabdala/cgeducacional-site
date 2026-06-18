@@ -97,13 +97,18 @@ Meta: começar só com **Google Drive (padrão, grátis)** + **YouTube unlisted 
   - ⚙️ Requer `CERTIMAKER_API_URL` + `CERTIMAKER_API_KEY` no env (LMS + Coolify).
 - [x] Integrar **validação de certificado** (página `/validar-certificado`) com o `/api/validar` público do Certimaker (`validateCertificate` em `(marketing)/validar-certificado/actions.ts`).
 
-## Fase 8 — Pagamentos (POSTERIOR — Mercado Pago, configurar API depois)
+## Fase 8 — Pagamentos (Mercado Pago — checkout transparente profissional)
 
-> Gateway definido: **Mercado Pago**. API/credenciais serão configuradas em outro momento. Até lá, matrícula é manual (Fase 7).
+> Gateway: **Mercado Pago**, checkout transparente (não Checkout Pro). Cartão e PIX, desconto PIX configurável, painel de compras + carrinhos abandonados. Coexiste com a matrícula manual (Fase 7).
 
-- [ ] Configurar credenciais Mercado Pago (access token / public key).
-- [ ] Checkout (Checkout Pro ou Bricks) na página do curso.
-- [ ] Webhook que cria `Enrollment` automaticamente ao confirmar pagamento (substitui/ complementa a matrícula manual).
+- [x] Credenciais Mercado Pago no env (`.env` + Coolify): `MERCADOPAGO_ACCESS_TOKEN`, `NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY`, `MERCADOPAGO_PIX_DISCOUNT` (default 2%), `MERCADOPAGO_WEBHOOK_SECRET` (opcional).
+- [x] **Modelo `Order`** (compras + carrinhos): status, método, valor/desconto/parcelas, CPF do pagador, `mpPaymentId`. Migration `5_orders`.
+- [x] **Checkout transparente** `/checkout/[courseId]` (exige login): abas **PIX** (QR + copia-e-cola + polling) e **Cartão** (preview animado com bandeira/flip, tokenização client-side via MercadoPago.js, parcelas até 12x com juros via API do MP). CPF validado no cadastro e no checkout.
+- [x] **Segurança:** cartão tokenizado no cliente (PCI SAQ-A); valor **sempre recalculado no servidor**; idempotência; reconciliação anti-race.
+- [x] **Webhook** `/api/payments/webhook`: verifica assinatura (`x-signature`), re-busca o pagamento (fonte da verdade), cria `Enrollment` idempotente + e-mail.
+- [x] **Admin `/admin/compras`**: lista (filtros: pagas / abandonados) + detalhe + CTA de remarketing.
+- [ ] Configurar a URL do webhook + segredo de assinatura no painel do Mercado Pago (produção).
+- [ ] (Futuro) cupons de desconto; reembolso pelo admin.
 
 ## Fase 9 — Qualidade, observabilidade e deploy
 
