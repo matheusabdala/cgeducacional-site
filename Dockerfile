@@ -58,4 +58,10 @@ USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+
+# Healthcheck via node (o alpine não traz curl/wget confiável). Bate em
+# /api/health; start-period dá tempo do Next subir antes de contar falha.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
+  CMD node -e "const http=require('http');const r=http.get('http://127.0.0.1:3000/api/health',x=>process.exit(x.statusCode===200?0:1));r.on('error',()=>process.exit(1));r.setTimeout(4000,()=>{r.destroy();process.exit(1)})"
+
 CMD ["node", "server.js"]
