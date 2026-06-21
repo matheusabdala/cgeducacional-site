@@ -83,6 +83,7 @@ export default async function CheckoutPage({
           pixDiscount={pix.discount}
           pixDiscountPct={pix.discountPct}
           publicKey={publicEnv.mercadopagoPublicKey}
+          testMode={publicEnv.mercadopagoPublicKey.startsWith("TEST-")}
           defaultCpf={profile?.cpf ?? undefined}
         />
       </div>

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Script from "next/script";
-import { CreditCard, QrCode } from "lucide-react";
+import { CreditCard, QrCode, FlaskConical } from "lucide-react";
 import { CourseCover } from "@/components/ui/course-cover";
 import { CardForm, type MP } from "@/components/checkout/card-form";
 import { PixPanel } from "@/components/checkout/pix-panel";
@@ -30,6 +30,7 @@ export function CheckoutClient({
   pixDiscount,
   pixDiscountPct,
   publicKey,
+  testMode,
   defaultCpf,
 }: {
   orderId: string;
@@ -42,6 +43,7 @@ export function CheckoutClient({
   pixDiscount: number;
   pixDiscountPct: number;
   publicKey: string;
+  testMode: boolean;
   defaultCpf?: string;
 }) {
   const [method, setMethod] = React.useState<Method>("pix");
@@ -60,6 +62,16 @@ export function CheckoutClient({
         strategy="afterInteractive"
         onLoad={initMp}
       />
+
+      {testMode && (
+        <div className="mb-6 flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
+          <FlaskConical size={16} className="shrink-0" />
+          <span>
+            <strong>Ambiente de teste</strong> — nenhuma cobrança real é feita.
+            Use cartões e PIX de teste do Mercado Pago.
+          </span>
+        </div>
+      )}
 
       <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
         {/* Pagamento */}
