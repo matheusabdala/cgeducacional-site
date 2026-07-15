@@ -94,6 +94,7 @@ Roles: `student`, `instructor`, `admin`. Acesso ao conteúdo controlado por `Enr
 - Segredos sempre server-side; **nunca** chave de API com prefixo `NEXT_PUBLIC_`.
 - Validação de entrada com **Zod** em toda Server Action / route.
 - Mídia sempre via `VideoProvider` / `StorageProvider`, nunca chamando Drive/YouTube direto nos componentes.
+- **API documentada em [`docs/api.md`](docs/api.md)** (Route Handlers + Server Actions). Ao criar/alterar/remover uma rota ou Server Action, **atualize `docs/api.md` na mesma mudança** — ver a skill `api-docs` (`.claude/skills/api-docs/`).
 
 ## Identidade visual (do app atual)
 

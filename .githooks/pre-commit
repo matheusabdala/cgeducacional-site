@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+#
+# Lembra de manter docs/api.md em sincronia com a superfície de API.
+# Avisa (NÃO bloqueia) quando um Route Handler ou Server Action foi tocado
+# no commit mas docs/api.md não. Ver a skill api-docs (.claude/skills/api-docs/).
+
+set -euo pipefail
+
+staged="$(git diff --cached --name-only)"
+
+api_changed="$(printf '%s\n' "$staged" | grep -E '^app/api/.*/route\.(ts|tsx|js)$|^app/.*actions\.(ts|tsx)$' || true)"
+doc_changed="$(printf '%s\n' "$staged" | grep -E '^docs/api\.md$' || true)"
+
+if [ -n "$api_changed" ] && [ -z "$doc_changed" ]; then
+  echo ""
+  echo "⚠️  A API mudou mas docs/api.md NÃO foi atualizado:"
+  printf '%s\n' "$api_changed" | sed 's/^/     - /'
+  echo ""
+  echo "   Atualize docs/api.md (rotas/actions, auth, status, e o commit no topo)."
+  echo "   Ver a skill: .claude/skills/api-docs/SKILL.md"
+  echo "   (aviso apenas — o commit segue normalmente)"
+  echo ""
+fi
+
+exit 0
