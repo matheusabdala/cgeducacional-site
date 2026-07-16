@@ -24,6 +24,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { FieldError } from "@/components/auth/form-bits";
+import { CourseAiDialog } from "@/components/admin/course-ai-dialog";
 import {
   courseSchema,
   COURSE_CATEGORIES,
@@ -51,6 +52,8 @@ const EMPTY: CourseInput = {
   programContent: "",
   modality: "online",
   location: "",
+  startDate: "",
+  endDate: "",
   requireSequential: false,
   dripEnabled: false,
   dripInitialCount: 0,
@@ -76,11 +79,23 @@ export function CourseForm({
     handleSubmit,
     control,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CourseInput>({
     resolver: zodResolver(courseSchema) as Resolver<CourseInput>,
     defaultValues: { ...EMPTY, ...defaultValues },
   });
+
+  /** Preenche os inputs com as sugestões escolhidas na IA. */
+  function applyAiFields(fields: Partial<CourseInput>) {
+    for (const [key, value] of Object.entries(fields)) {
+      if (value === undefined) continue;
+      setValue(key as keyof CourseInput, value as never, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }
 
   async function onSubmit(values: CourseInput) {
     const result =
@@ -109,6 +124,14 @@ export function CourseForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+      <div className="flex flex-col gap-2 rounded-xl border border-dashed border-teal-500/40 bg-teal-500/5 p-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-muted-foreground">
+          Deixe a IA sugerir título, conteúdo programático e mais a partir de
+          algumas dicas.
+        </p>
+        <CourseAiDialog onApply={applyAiFields} />
+      </div>
+
       <div className="space-y-1.5">
         <Label htmlFor="title">Título</Label>
         <Input id="title" placeholder="Ex.: Neurociência da Aprendizagem" {...register("title")} />
@@ -272,6 +295,23 @@ export function CourseForm({
             />
           </div>
         )}
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="startDate">Início da turma</Label>
+            <Input id="startDate" type="date" {...register("startDate")} />
+            <FieldError message={errors.startDate?.message} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="endDate">Término da turma</Label>
+            <Input id="endDate" type="date" {...register("endDate")} />
+            <FieldError message={errors.endDate?.message} />
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Datas oficiais que aparecem no certificado. Se vazias, usamos as datas
+          de matrícula e conclusão do aluno.
+        </p>
       </div>
 
       {/* Liberação de conteúdo (opcional) */}

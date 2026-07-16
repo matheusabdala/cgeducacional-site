@@ -40,6 +40,9 @@ export const courseSchema = z.object({
   ),
   modality: z.enum(["online", "presencial", "hibrido"]).default("online"),
   location: z.string().optional().or(z.literal("")),
+  // Datas oficiais da turma (yyyy-mm-dd). Vão no certificado; opcionais.
+  startDate: z.string().optional().or(z.literal("")),
+  endDate: z.string().optional().or(z.literal("")),
   // Liberação de conteúdo (opcional)
   requireSequential: z.boolean().default(false),
   dripEnabled: z.boolean().default(false),
@@ -47,7 +50,10 @@ export const courseSchema = z.object({
   dripDelayDays: z.coerce.number().int().min(0).default(7),
   // Modelo de certificado (id no Certimaker). "" = usar o padrão.
   certimakerTemplateId: z.string().optional().or(z.literal("")),
-});
+}).refine(
+  (d) => !d.startDate || !d.endDate || d.endDate >= d.startDate,
+  { message: "A data de término deve ser igual ou posterior à de início", path: ["endDate"] },
+);
 
 export const moduleSchema = z.object({
   title: z.string().min(2, "Título muito curto"),

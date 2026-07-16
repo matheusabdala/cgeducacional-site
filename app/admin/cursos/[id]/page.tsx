@@ -92,6 +92,8 @@ export default async function EditarCursoPage({
             workloadHours: course.workloadHours ?? undefined,
             modality: course.modality,
             location: course.location ?? "",
+            startDate: course.startDate?.toISOString().slice(0, 10) ?? "",
+            endDate: course.endDate?.toISOString().slice(0, 10) ?? "",
             requireSequential: course.requireSequential,
             dripEnabled: course.dripEnabled,
             dripInitialCount: course.dripInitialCount,

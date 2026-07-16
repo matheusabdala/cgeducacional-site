@@ -49,6 +49,8 @@ export const serverEnv = {
     ),
   certimakerApiKey: () =>
     required("CERTIMAKER_API_KEY", process.env.CERTIMAKER_API_KEY),
+  // --- Gemini (assistente IA) ---
+  geminiApiKey: () => required("GEMINI_API_KEY", process.env.GEMINI_API_KEY),
   // --- Mercado Pago ---
   mercadopagoAccessToken: () =>
     required("MERCADOPAGO_ACCESS_TOKEN", process.env.MERCADOPAGO_ACCESS_TOKEN),

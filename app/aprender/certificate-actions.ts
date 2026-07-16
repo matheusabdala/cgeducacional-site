@@ -79,6 +79,8 @@ export async function issueCertificate(courseId: string): Promise<IssueResult> {
       workloadHours: true,
       modality: true,
       location: true,
+      startDate: true,
+      endDate: true,
       certimakerCursoId: true,
       certimakerTurmaId: true,
       certimakerTemplateId: true,
@@ -96,7 +98,7 @@ export async function issueCertificate(courseId: string): Promise<IssueResult> {
           nome: user.name,
           email: user.email,
           cpf: user.cpf,
-          modalidade: "online",
+          modalidade: course.modality,
         });
       } catch (e) {
         // 409: CPF já existe no Certimaker → reaproveita.
@@ -142,10 +144,12 @@ export async function issueCertificate(courseId: string): Promise<IssueResult> {
     // 3) Turma
     let turmaId = course.certimakerTurmaId;
     if (!turmaId) {
+      // Preferimos as datas oficiais da turma (quando cadastradas); senão caímos
+      // para as datas reais de matrícula/conclusão do aluno.
       turmaId = await certimaker.createTurma({
         cursoId,
-        dataInicio: isoDate(enrollment.enrolledAt),
-        dataFim: isoDate(enrollment.completedAt),
+        dataInicio: isoDate(course.startDate ?? enrollment.enrolledAt),
+        dataFim: isoDate(course.endDate ?? enrollment.completedAt),
       });
       await prisma.course.update({
         where: { id: courseId },

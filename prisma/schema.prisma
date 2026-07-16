@@ -103,6 +103,8 @@ model Course {
   workloadHours   Int? // carga horária em horas
   modality        CourseModality @default(online)
   location        String? // local (presencial/híbrido)
+  startDate       DateTime?      @db.Date // data oficial de início da turma (vai no certificado)
+  endDate         DateTime?      @db.Date // data oficial de término da turma (vai no certificado)
   // Liberação de conteúdo (opcional, por curso)
   requireSequential Boolean      @default(false) // trava aula até concluir a anterior
   dripEnabled       Boolean      @default(false) // libera X aulas e o resto após N dias

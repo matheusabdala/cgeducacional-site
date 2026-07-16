@@ -119,6 +119,7 @@ Guard: admin ou dono do curso. Inclui a integração Certimaker.
 | Action | Papel |
 |---|---|
 | `openCertimakerCreator()` | Gera URL de SSO p/ o criador de modelos no Certimaker |
+| `generateCourseDraft(hints)` | IA (Gemini): sugere título, descrição, conteúdo programático, carga horária, nível e categoria a partir de dicas livres. Ver `ai-actions.ts` |
 | `createCourse` / `updateCourse` / `deleteCourse` | CRUD de curso |
 | `togglePublish(...)` | Publica/despublica |
 | `createModule` / `updateModule` / `deleteModule` | CRUD de módulo |
@@ -145,7 +146,7 @@ Guard: admin ou dono do curso. Inclui a integração Certimaker.
 ### Aluno · Certificados — `app/aprender/certificate-actions.ts`
 | Action | Papel |
 |---|---|
-| `issueCertificate(courseId)` | Emite/retorna o certificado (idempotente); espelha aluno/curso/turma no Certimaker e emite via API key |
+| `issueCertificate(courseId)` | Emite/retorna o certificado (idempotente); espelha aluno/curso/turma no Certimaker e emite via API key. Datas da turma = `Course.startDate`/`endDate` quando definidas, senão matrícula/conclusão do aluno |
 | `setCpf(value)` | Define CPF do aluno (quem entrou via Google sem CPF) |
 
 ### Checkout · Pagamentos — `app/checkout/[courseId]/actions.ts`

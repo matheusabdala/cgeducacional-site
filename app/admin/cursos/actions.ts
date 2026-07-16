@@ -29,6 +29,12 @@ export async function openCertimakerCreator(): Promise<{
   }
 }
 
+/** Converte "yyyy-mm-dd" (input date) em Date UTC à meia-noite, ou null. */
+function toDate(value?: string): Date | null {
+  if (!value) return null;
+  return new Date(`${value}T00:00:00.000Z`);
+}
+
 function slugify(text: string): string {
   return text
     .normalize("NFD")
@@ -86,6 +92,8 @@ export async function createCourse(values: unknown): Promise<Result> {
       workloadHours: d.workloadHours ?? null,
       modality: d.modality,
       location: d.location || null,
+      startDate: toDate(d.startDate),
+      endDate: toDate(d.endDate),
       requireSequential: d.requireSequential,
       dripEnabled: d.dripEnabled,
       dripInitialCount: d.dripInitialCount,
@@ -123,6 +131,8 @@ export async function updateCourse(
       workloadHours: d.workloadHours ?? null,
       modality: d.modality,
       location: d.location || null,
+      startDate: toDate(d.startDate),
+      endDate: toDate(d.endDate),
       requireSequential: d.requireSequential,
       dripEnabled: d.dripEnabled,
       dripInitialCount: d.dripInitialCount,
