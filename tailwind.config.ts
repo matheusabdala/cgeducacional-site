@@ -104,6 +104,12 @@ const config: Config = {
           from: { opacity: "0", transform: "translateY(16px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        // Entrada de modal: preserva o translate(-50%,-50%) que centraliza o
+        // conteúdo (uma keyframe só com translateY apagaria a centralização).
+        "dialog-in": {
+          from: { opacity: "0", transform: "translate(-50%, -46%) scale(0.97)" },
+          to: { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
+        },
         "fade-in": {
           from: { opacity: "0" },
           to: { opacity: "1" },
@@ -126,6 +132,7 @@ const config: Config = {
         "float-slow": "float-slow 11s ease-in-out infinite",
         "fade-up": "fade-up 0.6s cubic-bezier(0.16,1,0.3,1) both",
         "fade-in": "fade-in 0.6s ease-out both",
+        "dialog-in": "dialog-in 0.2s cubic-bezier(0.16,1,0.3,1)",
         shimmer: "shimmer 6s linear infinite",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
