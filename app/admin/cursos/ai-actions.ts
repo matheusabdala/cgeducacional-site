@@ -4,7 +4,20 @@ import { z } from "zod";
 import { requireRole } from "@/lib/auth";
 import { gemini, GeminiError } from "@/server/gemini/client";
 
-const CATEGORIES = ["neurociencia", "pedagogia", "gestao", "inclusao"] as const;
+const CATEGORIES = [
+  "neurociencia",
+  "pedagogia",
+  "gestao",
+  "inclusao",
+  "musica",
+  "historia",
+  "artes_visuais",
+  "seguranca_publica",
+  "seguranca_trabalho",
+  "letras",
+  "hotelaria",
+  "outros",
+] as const;
 const LEVELS = ["iniciante", "intermediario", "avancado"] as const;
 
 /** Rascunho de curso sugerido pela IA (todos os campos são opcionais no uso). */

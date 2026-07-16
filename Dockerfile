@@ -39,6 +39,11 @@ RUN npx prisma migrate deploy \
 # Popula cursos de demonstração só se o catálogo estiver vazio (não-fatal).
 RUN npx tsx prisma/seed-if-empty.ts || echo "[build] seed-if-empty pulado"
 
+# Importa o catálogo de cursos da planilha CG Educacional (idempotente: cria por
+# slug só se não existir; preserva edições no /admin). Não-fatal. Roda após o
+# migrate deploy (precisa das novas categorias do enum).
+RUN npx tsx prisma/import-catalog.ts || echo "[build] import-catalog pulado"
+
 RUN npm run build
 
 # ---- Runtime ----

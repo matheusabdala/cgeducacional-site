@@ -5,6 +5,29 @@ export const COURSE_CATEGORIES = [
   { value: "pedagogia", label: "Pedagogia" },
   { value: "gestao", label: "Gestão Escolar" },
   { value: "inclusao", label: "Inclusão" },
+  { value: "musica", label: "Música" },
+  { value: "historia", label: "História" },
+  { value: "artes_visuais", label: "Artes Visuais" },
+  { value: "seguranca_publica", label: "Segurança Pública" },
+  { value: "seguranca_trabalho", label: "Segurança do Trabalho" },
+  { value: "letras", label: "Letras" },
+  { value: "hotelaria", label: "Hotelaria" },
+  { value: "outros", label: "Outros" },
+] as const;
+
+const CATEGORY_VALUES = [
+  "neurociencia",
+  "pedagogia",
+  "gestao",
+  "inclusao",
+  "musica",
+  "historia",
+  "artes_visuais",
+  "seguranca_publica",
+  "seguranca_trabalho",
+  "letras",
+  "hotelaria",
+  "outros",
 ] as const;
 
 export const COURSE_LEVELS = [
@@ -23,7 +46,7 @@ export const courseSchema = z.object({
   title: z.string().min(3, "Título muito curto"),
   description: z.string().min(10, "Descrição muito curta (mín. 10 caracteres)"),
   fullDescription: z.string().optional().or(z.literal("")),
-  category: z.enum(["neurociencia", "pedagogia", "gestao", "inclusao"]),
+  category: z.enum(CATEGORY_VALUES),
   level: z.enum(["iniciante", "intermediario", "avancado"]),
   price: z.coerce.number().min(0, "Preço inválido"),
   durationLabel: z.string().optional().or(z.literal("")),

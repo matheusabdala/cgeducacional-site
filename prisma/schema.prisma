@@ -33,6 +33,14 @@ enum CourseCategory {
   pedagogia
   gestao
   inclusao
+  musica
+  historia
+  artes_visuais
+  seguranca_publica
+  seguranca_trabalho
+  letras
+  hotelaria
+  outros
 }
 
 // Provider de vídeo da aula. Drive é o padrão (baixo custo); YouTube unlisted
