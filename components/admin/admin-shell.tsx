@@ -8,6 +8,7 @@ import {
   BookOpen,
   Users,
   ShoppingBag,
+  FileSignature,
   Menu,
   X,
   ExternalLink,
@@ -27,12 +28,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOutAction } from "@/app/(auth)/actions";
+import { InstallAppMenuItem, PwaRegister } from "@/components/admin/pwa";
 
-const NAV = [
+// `roles` restringe o item a certos papéis (a página também confere no servidor).
+const NAV: { href: string; label: string; icon: React.ElementType; exact?: boolean; roles?: string[] }[] = [
   { href: "/admin", label: "Visão geral", icon: LayoutDashboard, exact: true },
   { href: "/admin/cursos", label: "Cursos", icon: BookOpen },
   { href: "/admin/alunos", label: "Alunos", icon: Users },
-  { href: "/admin/compras", label: "Compras", icon: ShoppingBag },
+  { href: "/admin/compras", label: "Compras", icon: ShoppingBag, roles: ["admin"] },
+  { href: "/admin/documentos", label: "Documentos", icon: FileSignature, roles: ["admin"] },
 ];
 
 const ROLE_LABEL: Record<string, string> = {
@@ -56,7 +60,7 @@ export function AdminShell({
 
   const nav = (
     <nav className="flex flex-col gap-1">
-      {NAV.map((item) => {
+      {NAV.filter((item) => !item.roles || item.roles.includes(profile.role)).map((item) => {
         const Icon = item.icon;
         const active = isActive(item.href, item.exact);
         return (
@@ -111,6 +115,7 @@ export function AdminShell({
 
   return (
     <div className="flex min-h-screen w-full">
+      <PwaRegister />
       {/* Sidebar — fixa no desktop */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-border bg-card/60 backdrop-blur-xl lg:block">
         {sidebarInner}
@@ -137,7 +142,8 @@ export function AdminShell({
       )}
 
       {/* Conteúdo */}
-      <div className="flex flex-1 flex-col lg:pl-64">
+      {/* min-w-0: sem isso o item flex cresce até o texto mais longo e a página transborda no celular */}
+      <div className="flex min-w-0 flex-1 flex-col lg:pl-64">
         <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/70 px-4 backdrop-blur-xl md:px-6">
           <button
             className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground lg:hidden"
@@ -183,6 +189,7 @@ export function AdminShell({
                   </Badge>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <InstallAppMenuItem />
                 <form action={signOutAction}>
                   <DropdownMenuItem variant="destructive" asChild>
                     <button type="submit" className="w-full">

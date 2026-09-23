@@ -6,6 +6,7 @@ import {
   Users,
   Plus,
   ArrowRight,
+  FileSignature,
 } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -47,7 +48,7 @@ export default async function AdminDashboard() {
   const isAdmin = profile?.role === "admin";
   const courseWhere = isAdmin ? {} : { instructorId: profile!.id };
 
-  const [courses, published, students, enrollments, recent] = await Promise.all(
+  const [courses, published, students, enrollments, recent, pendingDocs] = await Promise.all(
     [
       prisma.course.count({ where: courseWhere }),
       prisma.course.count({ where: { ...courseWhere, published: true } }),
@@ -66,6 +67,7 @@ export default async function AdminDashboard() {
           _count: { select: { modules: true, enrollments: true } },
         },
       }),
+      isAdmin ? prisma.esignDocument.count({ where: { status: "pending" } }) : Promise.resolve(0),
     ],
   );
 
@@ -113,6 +115,28 @@ export default async function AdminDashboard() {
           tint="bg-teal/10 text-teal"
         />
       </div>
+
+      {isAdmin && (
+        <Link
+          href="/admin/documentos?filter=pending"
+          className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 shadow-card transition-colors hover:bg-secondary/40"
+        >
+          <span className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+              <FileSignature size={20} />
+            </span>
+            <span>
+              <span className="block font-medium text-foreground">
+                {pendingDocs === 0
+                  ? "Nenhum documento aguardando assinatura"
+                  : `${pendingDocs} documento${pendingDocs === 1 ? "" : "s"} aguardando assinatura`}
+              </span>
+              <span className="text-sm text-muted-foreground">Assinatura eletrônica de contratos e termos</span>
+            </span>
+          </span>
+          <ArrowRight size={18} className="shrink-0 text-muted-foreground" />
+        </Link>
+      )}
 
       <div className="rounded-2xl border border-border bg-card shadow-card">
         <div className="flex items-center justify-between border-b border-border p-5">

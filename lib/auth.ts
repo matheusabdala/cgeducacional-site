@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { Role, User } from "@prisma/client";
@@ -9,21 +10,24 @@ import { prisma } from "@/lib/prisma";
  * verdade de identidade; o perfil (role, nome) vive em `public.User` via Prisma.
  */
 
-/** Usuário autenticado do Supabase (ou null). */
-export async function getAuthUser(): Promise<SupabaseUser | null> {
+/**
+ * Usuário autenticado do Supabase (ou null). Em cache por requisição (React
+ * `cache`): layout + página chamam isto, mas só vai uma vez ao Supabase.
+ */
+export const getAuthUser = cache(async (): Promise<SupabaseUser | null> => {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   return user;
-}
+});
 
 /** Perfil (Prisma) do usuário autenticado, ou null se não logado. */
-export async function getCurrentProfile(): Promise<User | null> {
+export const getCurrentProfile = cache(async (): Promise<User | null> => {
   const authUser = await getAuthUser();
   if (!authUser) return null;
   return prisma.user.findUnique({ where: { id: authUser.id } });
-}
+});
 
 /**
  * Garante uma linha em `public.User` para o usuário do Auth. Chamado no cadastro
@@ -71,9 +75,7 @@ export async function requireUser(nextPath?: string): Promise<SupabaseUser> {
 /** Exige perfil; garante a linha em `public.User` se faltar. */
 export async function requireProfile(nextPath?: string): Promise<User> {
   const authUser = await requireUser(nextPath);
-  const profile = await prisma.user.findUnique({
-    where: { id: authUser.id },
-  });
+  const profile = await getCurrentProfile();
   return profile ?? ensureProfile(authUser);
 }
 

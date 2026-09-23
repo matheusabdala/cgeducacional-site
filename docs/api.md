@@ -5,7 +5,7 @@
 > Route Handler ou uma Server Action, atualize este arquivo na mesma mudança.**
 > A skill `api-docs` (`.claude/skills/api-docs/SKILL.md`) descreve o processo.
 >
-> Última verificação contra o código: **commit `303f9c4`** (2026-07-15).
+> Última verificação contra o código: **Fase 10 — assinatura eletrônica** (2026-09-23).
 
 ## Como a API é organizada
 
@@ -46,6 +46,12 @@ Duas superfícies, por convenção do projeto (ver [CLAUDE.md](../CLAUDE.md)):
 | `/api/certificate/[courseId]` | GET | login | Proxy do PDF do certificado (Certimaker) |
 | `/api/admin/upload` | POST | admin/instructor | Upload de arquivo para o Drive |
 | `/api/payments/webhook` | GET, POST | assinatura MP | Webhook do Mercado Pago |
+| `/api/esign/upload` | POST | admin | Upload de PDF p/ assinatura (até 25 MB) |
+| `/api/esign/files/[documentId]/[which]` | GET | admin | PDF original/assinado (proxy do Storage) |
+| `/api/esign/s/[token]/[which]` | GET | token do signatário | PDF para quem vai assinar |
+| `/api/esign/phone-upload/[code]` | POST | código do QR (uso único) | Upload de PDF feito pelo celular |
+| `/api/esign/v1/**` | vários | Bearer `ESIGN_API_KEY` | REST do módulo de assinatura (ver abaixo) |
+| `/admin/documentos/compartilhar` | POST, GET | — | Destino do share_target do PWA (fallback do SW) |
 
 ### `GET /api/health`
 `app/api/health/route.ts` — **pública, liveness.** Responde **sempre 200**
@@ -96,6 +102,41 @@ pagamento do Mercado Pago.
 - **GET**: `{ ok: true }` (teste de verificação do MP).
 - ⚠️ A assinatura só é checada **se o segredo estiver configurado** — garanta
   `MP_WEBHOOK_SECRET` em produção.
+
+### Assinatura eletrônica (`server/esign`) — rotas de bytes
+Toda regra de negócio está em `server/esign` (ver [esign.md](esign.md)); as rotas
+só autorizam e transportam bytes. Ficam **fora do matcher do middleware** (que
+cortaria uploads > 10 MB) e fazem a própria autorização.
+- `POST /api/esign/upload` — multipart `file` (+ `title?`, `source?`). **Só admin.**
+  Rate limit 30/10 min. Recusa Word (**415** "Converta para PDF…"), PDF cifrado
+  (**422**), > 25 MB (**413**). Sucesso: `{ id, code, name }` (rascunho criado).
+- `GET /api/esign/files/[documentId]/original|signed` — **só admin**; `?download=1`
+  baixa (padrão: inline). **404** se ainda não há versão assinada.
+- `GET /api/esign/s/[token]/original|signed` — autorizado pelo **token do link**
+  do signatário; rate limit 60/min por IP. **404/410** link inválido/cancelado.
+- `POST /api/esign/phone-upload/[code]` — página `/m/upload/[code]` (QR do painel);
+  código de **uso único, 10 min**, sem login. Cria o rascunho em nome do operador
+  que gerou o QR. **410** QR usado/expirado.
+- `/admin/documentos/compartilhar` — destino do `share_target` do PWA. O service
+  worker (`public/sw.js`) intercepta o POST, guarda o arquivo no Cache API e
+  redireciona para `/admin/documentos/novo?compartilhado=<id>`; a rota só responde
+  se o SW não estiver ativo (303 → `?erro=compartilhamento`).
+
+### REST `/api/esign/v1` (integrações / futuro app próprio)
+Auth: `Authorization: Bearer <ESIGN_API_KEY>` (**503** se a chave não estiver
+configurada, **401** se inválida). Erros: `{ error, code }` com o status do `EsignError`.
+
+| Método | Rota | Papel |
+|---|---|---|
+| GET | `/documents?status=&q=&page=&perPage=` | Lista paginada |
+| POST | `/documents` | multipart `file` → rascunho · JSON `{ url, title?, requireOtp?, message?, signers?, fields?, send?, sendEmails? }` (`fields[].signer` = índice em `signers`) |
+| GET | `/documents/:id` | Documento + signatários + campos + trilha (sem tokens) |
+| DELETE | `/documents/:id` | Apaga rascunho |
+| PUT | `/documents/:id/draft` | Substitui o rascunho: `{ title, requireOtp, message?, signers[{key,id?,name?,email?,cpf?}], fields[{signerKey,kind,page,x,y,w,h}] }` (x/y/w/h relativos 0..1) |
+| POST | `/documents/:id/send` | `{ sendEmails? }` → `{ links: [{ signerId, link, emailSent }] }` |
+| POST | `/documents/:id/cancel` | Cancela (links param de funcionar) |
+| GET | `/documents/:id/files/original\|signed` | Bytes do PDF |
+| GET / POST | `/documents/:id/signers/:signerId/link` | Link atual / gera um novo |
 
 ---
 
@@ -162,12 +203,52 @@ Guard: admin ou dono do curso. Inclui a integração Certimaker.
 |---|---|
 | `validateCertificate(...)` | Valida um certificado (público) consultando o Certimaker |
 
+### Admin · Documentos (assinatura) — `app/admin/documentos/actions.ts`
+Guard: **só admin** (`requireRole(["admin"])`). Chamam `server/esign` com o ator + IP/UA.
+
+| Action | Papel |
+|---|---|
+| `saveDraftAction(id, draft)` | Salva o rascunho inteiro (título, opções, signatários, campos); devolve `key → id` dos signatários |
+| `sendDocumentAction(id, { sendEmails })` | Gera os links e (opcional) envia convites; retorna `{ emailed }` |
+| `createFromUrlAction(url)` | Importa PDF de um link público (SSRF-safe) |
+| `createPhoneUploadAction()` / `phoneUploadStatusAction(code)` | QR para enviar o PDF pelo celular + polling |
+| `getSignerLinkAction(signerId)` | Link atual (descriptografado) |
+| `rotateSignerLinkAction(signerId, documentId)` | Novo link (o anterior para de funcionar) |
+| `resendInviteAction(signerId, documentId)` | Reenvia o convite por e-mail |
+| `cancelDocumentAction(id)` / `deleteDraftAction(id)` | Cancela documento / apaga rascunho |
+
+### Público · Assinatura — `app/(esign)/assinar/[token]/actions.ts`
+Sem login: autorizadas pelo **token do link**; rate limit por IP.
+
+| Action | Papel |
+|---|---|
+| `identifyAction(token, { name, cpf, email? })` | Valida CPF (e o CPF exigido); se o documento exige, envia o código por e-mail → `{ needsOtp, sentTo }` |
+| `requestOtpAction(token, email)` / `verifyOtpAction(token, code)` | Reenvio (45 s; 3 a cada 15 min) e verificação (5 tentativas; 10 min) |
+| `createPhoneSignatureAction(token)` / `phoneSignatureStatusAction(token, code)` | QR para assinar com o dedo no celular + polling |
+| `submitSignatureAction(token, input)` | Registra a assinatura (`draw\|type\|phone`), regera o PDF e conclui se for a última |
+
+### Público · Assinatura no celular — `app/(esign)/m/actions.ts`
+
+| Action | Papel |
+|---|---|
+| `submitPhoneSignatureAction(code, pngBase64)` | Página `/m/assinatura/[code]`: envia o PNG desenhado (sessão de uso único) |
+
+### Público · Validação de documento — `app/(marketing)/validar-documento/actions.ts`
+
+| Action | Papel |
+|---|---|
+| `validateDocumentAction(code)` | Status, signatários (primeiro nome + CPF mascarado) e hashes, pelo código `DOC-XXXX-XXXX` |
+
 ---
 
 ## Middleware & proteção de rotas
 `middleware.ts` — renova a sessão do Supabase a cada request e redireciona:
 - não logado em `/aprender` ou `/admin` → `/login?next=<path>`;
 - logado em `/login`/`/cadastro` → `/aprender`.
+
+O matcher **exclui** `/api/esign/*`, `/sw.js` e `/manifest.webmanifest` (as rotas de
+assinatura autorizam por conta própria e recebem uploads grandes). As páginas
+públicas `/assinar/*`, `/m/*` e `/validar-documento` não exigem login.
 
 O guard por role (admin vs aluno) **não** está no middleware (edge) — fica nos
 layouts server-side via `requireRole`.

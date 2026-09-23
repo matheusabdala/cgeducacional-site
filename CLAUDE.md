@@ -48,13 +48,16 @@ node scripts/shots.mjs             # screenshots via Playwright (SHOT_BASE, SHOT
 ```
 app/
   (marketing)/      landing pública: /, /cursos, /cursos/[id], /eja, /graduacao,
-                    /pos-graduacao, /validar-certificado
+                    /pos-graduacao, /validar-certificado, /validar-documento
+  (esign)/         páginas públicas de assinatura: /assinar/[token], /m/upload/[code], /m/assinatura/[code]
   (auth)/           /login, /cadastro, /recuperar-senha + actions.ts
   auth/callback/    callback OAuth do Supabase
   aprender/         área do aluno: dashboard, /[slug] (curso), /[slug]/[lessonId] (aula)
-  admin/            painel admin/professor: dashboard, cursos (+ builder), alunos, compras
+  admin/            painel admin/professor: dashboard, cursos (+ builder), alunos, compras, documentos
   checkout/[courseId]/  checkout Mercado Pago
-  api/              só HTTP cru: health, video, material, certificate, admin/upload, payments/webhook
+  api/              só HTTP cru: health, video, material, certificate, admin/upload, payments/webhook,
+                    esign/ (upload, arquivos, celular, REST v1)
+  manifest.ts       PWA do painel (share_target) — SW em public/sw.js
 components/
   ui/               shadcn (não reinventar)
   admin/ auth/ checkout/ learn/ player/   componentes por área
@@ -62,17 +65,18 @@ components/
 lib/                auth, access (gate de aula), learn (drip/sequencial), catalog, env, prisma,
                     supabase/{client,server}, validations/, rate-limit, cpf, card, pricing
 server/             integrações server-only: media/ (Drive, YouTube), certimaker/, payments/
-                    (mercadopago, orders), email/, gemini/
-prisma/             schema, migrations (0_init … 7_course_categories), rls.sql, seeds,
+                    (mercadopago, orders), email/, gemini/, esign/ (assinatura eletrônica)
+prisma/             schema, migrations (0_init … 8_esign), rls.sql, seeds,
                     import-catalog.ts + data/catalog-courses.json
 constants.ts, types.ts   legado do Vite (tipos da vitrine, WhatsApp link)
 docs/api.md         referência VIVA da API (ver regra abaixo)
+docs/esign.md       arquitetura/env/segurança do módulo de assinatura
 tasks.md            roadmap por fases com status
 ```
 
 ## Domínio (Prisma)
 
-`User` (id = `auth.users.id`, `role`: student | instructor | admin, `cpf` único) · `Course` (slug, categoria, preço, dados acadêmicos p/ certificado, opções `requireSequential` e drip, ids cacheados do Certimaker) → `Module` → `Lesson` (`videoProvider` + `videoRef`, `content` texto, `documentFileId` PDF inline, `materialFileId` download) · `Enrollment` · `LessonProgress` · `Certificate` (code + URL do Certimaker) · `Order` (status initiated→pending→approved…, `mpPaymentId`).
+`User` (id = `auth.users.id`, `role`: student | instructor | admin, `cpf` único) · `Course` (slug, categoria, preço, dados acadêmicos p/ certificado, opções `requireSequential` e drip, ids cacheados do Certimaker) → `Module` → `Lesson` (`videoProvider` + `videoRef`, `content` texto, `documentFileId` PDF inline, `materialFileId` download) · `Enrollment` · `LessonProgress` · `Certificate` (code + URL do Certimaker) · `Order` (status initiated→pending→approved…, `mpPaymentId`) · `Esign*` (assinatura: `EsignDocument` → `EsignSigner`/`EsignField`, `EsignEvent` trilha, `EsignSession` QR — sem FK p/ `User`).
 
 ## Fluxos principais
 
@@ -83,6 +87,7 @@ tasks.md            roadmap por fases com status
 - **Checkout:** cartão tokenizado no browser (MercadoPago.js, public key `NEXT_PUBLIC_`); valor **sempre recalculado no servidor**; webhook re-busca o pagamento no MP (fonte da verdade) e cria `Enrollment` idempotente. Banner de teste aparece com credenciais `TEST-`.
 - **Certificado:** ao chegar em 100% o aluno recebe emissão automática no Certimaker (espelha aluno → curso → turma → modelo). PDF servido via proxy `/api/certificate/[courseId]` (o endpoint do Certimaker exige Bearer). Validação pública em `/validar-certificado` usa `/api/validar` do Certimaker. Admin abre o editor de modelos do Certimaker via SSO (`openCertimakerCreator`).
 - **Catálogo:** `lib/catalog.ts` lê cursos publicados do banco e converte enums → rótulos pt-BR para os componentes legados.
+- **Assinatura eletrônica (Fase 10):** módulo em `server/esign` (única fronteira com o app: `deps.ts`; importe sempre de `@/server/esign`). Admin em `/admin/documentos` (só `admin`), assinatura pública em `/assinar/[token]`, QR do celular em `/m/upload/[code]` e `/m/assinatura/[code]`, validação em `/validar-documento`, REST em `/api/esign/v1` (Bearer `ESIGN_API_KEY`). PDFs no Supabase Storage (bucket privado `esign`), sempre servidos por rota com autorização. `react-pdf` 11 usa Suspense por padrão — os componentes usam `suspense={false}` (sem isso a árvore do `next/dynamic` remonta em loop). Painel é PWA com `share_target` (`app/manifest.ts` + `public/sw.js`). Ver `docs/esign.md`.
 
 ## Deploy (Coolify)
 
@@ -119,7 +124,8 @@ tasks.md            roadmap por fases com status
 
 - **Categorias da vitrine:** o enum do banco tem 12 categorias (migration `7_course_categories`), mas `lib/catalog.ts` e `types.ts` só mapeiam 4 (neurociência, pedagogia, gestão, inclusão). As demais caem em "Neurociência" na vitrine pública — afeta a maioria dos 260 cursos importados (138 são `outros`).
 - Webhook do MP em produção: URL + segredo de assinatura ainda precisam ser configurados no painel do Mercado Pago.
-- Resend: falta chave/domínio verificado — hoje e-mails são apenas logados.
+- Resend: a chave existe, mas o **domínio não está verificado** (modo de teste: só entrega ao dono da conta). Consequência na assinatura: o **código por e-mail não chega** aos signatários — desligue "Exigir código por e-mail" nos documentos até verificar o domínio no Resend.
+- `ESIGN_SECRET` é o mesmo em dev e produção (banco único); trocá-lo invalida os links já enviados.
 - Sem testes automatizados; sem Sentry/logs estruturados.
 - Rate limit (`lib/rate-limit.ts`) é em memória, por container.
 - Drive via Service Account pode esbarrar em quota de armazenamento em pasta comum → usar Shared Drive para volume real.

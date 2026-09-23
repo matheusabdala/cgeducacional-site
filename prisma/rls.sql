@@ -157,3 +157,24 @@ create policy "certificate_select_own" on "Certificate"
 
 create policy "certificate_admin_write" on "Certificate"
   for all using (public.is_admin()) with check (public.is_admin());
+
+-- Assinatura eletrônica (Esign*) --------------------------------------------
+-- Acesso só pelo servidor (Prisma/service role). Signatários externos nunca
+-- leem o banco direto: passam pelas Server Actions com o token do link.
+
+alter table "EsignDocument" enable row level security;
+alter table "EsignSigner"   enable row level security;
+alter table "EsignField"    enable row level security;
+alter table "EsignEvent"    enable row level security;
+alter table "EsignSession"  enable row level security;
+
+create policy "esign_document_admin_all" on "EsignDocument"
+  for all using (public.is_admin()) with check (public.is_admin());
+create policy "esign_signer_admin_all" on "EsignSigner"
+  for all using (public.is_admin()) with check (public.is_admin());
+create policy "esign_field_admin_all" on "EsignField"
+  for all using (public.is_admin()) with check (public.is_admin());
+create policy "esign_event_admin_all" on "EsignEvent"
+  for all using (public.is_admin()) with check (public.is_admin());
+create policy "esign_session_admin_all" on "EsignSession"
+  for all using (public.is_admin()) with check (public.is_admin());

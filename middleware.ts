@@ -62,7 +62,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Tudo, exceto estáticos e otimização de imagem.
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Tudo, exceto estáticos, otimização de imagem, arquivos do PWA e as rotas
+    // de assinatura (/api/esign fazem a própria autorização; passar pelo
+    // middleware cortaria uploads > 10 MB).
+    "/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|api/esign/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

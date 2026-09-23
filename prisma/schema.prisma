@@ -248,3 +248,181 @@ model Certificate {
   @@index([userId])
   @@index([courseId])
 }
+
+// ===========================================================================
+// Assinatura eletrônica de documentos (módulo `server/esign`).
+// Prefixo `Esign*` e SEM relação com `User` (só snapshot de id/nome do criador)
+// para o módulo poder ser extraído para um produto próprio no futuro.
+// ===========================================================================
+
+enum EsignDocumentStatus {
+  draft // rascunho: operador ainda posicionando campos
+  pending // enviado, aguardando assinaturas
+  completed // todos assinaram (imutável)
+  cancelled // cancelado pelo operador (links param de funcionar)
+}
+
+enum EsignSignerStatus {
+  pending
+  signed
+}
+
+enum EsignFieldKind {
+  signature
+  name
+  cpf
+  date
+}
+
+enum EsignSignatureMethod {
+  draw // desenhada (mouse/dedo) na própria página
+  type // nome digitado em fonte cursiva
+  phone // desenhada no celular via QR/link
+}
+
+enum EsignSessionKind {
+  upload // enviar PDF pelo celular (operador)
+  signature // desenhar a assinatura pelo celular (signatário)
+}
+
+model EsignDocument {
+  id             String              @id @default(cuid())
+  code           String              @unique // público, p/ validação (ex.: DOC-7K3M-Q2ZP)
+  title          String
+  status         EsignDocumentStatus @default(draft)
+  originalPath   String // caminho no storage do PDF original
+  originalName   String // nome do arquivo enviado
+  originalMime   String              @default("application/pdf") // gancho p/ Word→PDF
+  originalSha256 String
+  originalSize   Int
+  pageCount      Int
+  pageSizes      Json // [{ x, y, w, h, rotate }] (CropBox em pontos)
+  signedPath     String? // PDF com as assinaturas + relatório (regerado a cada assinatura)
+  signedSha256   String?
+  signedVersion  Int                 @default(0)
+  requireOtp     Boolean             @default(true) // exige código por e-mail
+  message        String? // mensagem do convite
+  createdById    String              @db.Uuid // snapshot do operador (sem FK)
+  createdByName  String
+  sentAt         DateTime?
+  completedAt    DateTime?
+  cancelledAt    DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  signers  EsignSigner[]
+  fields   EsignField[]
+  events   EsignEvent[]
+  sessions EsignSession[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([createdById])
+}
+
+model EsignSigner {
+  id         String            @id @default(cuid())
+  documentId String
+  order      Int               @default(0)
+  // Pré-definidos pelo operador (opcionais)
+  name       String?
+  email      String?
+  cpf        String? // 11 dígitos; se definido, o signatário precisa informar o mesmo
+  status     EsignSignerStatus @default(pending)
+  // Link secreto (gerado no envio): só o hash para busca + versão cifrada p/ "copiar link"
+  tokenHash  String?           @unique
+  tokenEnc   String?
+  viewedAt   DateTime?
+
+  // Evidências da assinatura (snapshot do que a pessoa informou)
+  signedName       String?
+  signedCpf        String?
+  signedEmail      String?
+  signatureMethod  EsignSignatureMethod?
+  signaturePath    String? // PNG no storage
+  signatureSha256  String?
+  typedText        String?
+  signedAt         DateTime?
+  signedIp         String?
+  signedUserAgent  String?
+  signedDevice     String?
+  signedGeo        Json?
+  phoneIp          String? // aparelho onde desenhou (método phone)
+  phoneUserAgent   String?
+  phoneDevice      String?
+
+  // Código por e-mail (OTP)
+  otpEmail      String?
+  otpCodeHash   String?
+  otpExpiresAt  DateTime?
+  otpAttempts   Int       @default(0)
+  otpSentAt     DateTime?
+  otpSendCount  Int       @default(0)
+  otpVerifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  document EsignDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  fields   EsignField[]
+
+  @@index([documentId])
+}
+
+model EsignField {
+  id         String         @id @default(cuid())
+  documentId String
+  signerId   String
+  kind       EsignFieldKind
+  // Posição relativa à página exibida (0..1, origem no canto superior esquerdo)
+  page       Int
+  x          Float
+  y          Float
+  w          Float
+  h          Float
+  createdAt  DateTime       @default(now())
+
+  document EsignDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  signer   EsignSigner   @relation(fields: [signerId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([signerId])
+}
+
+// Trilha de auditoria com cadeia de hash (cada evento referencia o anterior).
+model EsignEvent {
+  id         String   @id @default(cuid())
+  documentId String
+  signerId   String?
+  type       String // document_created, sent, link_opened, otp_sent, signer_signed, completed…
+  ip         String?
+  userAgent  String?
+  data       Json?
+  prevHash   String?
+  hash       String
+  createdAt  DateTime @default(now())
+
+  document EsignDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId, createdAt])
+}
+
+// Sessões de QR code (uso único, curtas): upload pelo celular e assinatura pelo dedo.
+model EsignSession {
+  id          String           @id @default(cuid())
+  kind        EsignSessionKind
+  codeHash    String           @unique
+  documentId  String?
+  signerId    String?
+  actorId     String?          @db.Uuid // operador (upload)
+  actorName   String?
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  resultPath  String? // PNG da assinatura (signature)
+  resultMeta  Json? // upload: { documentId } · signature: { ip, userAgent, device }
+  createdAt   DateTime         @default(now())
+
+  document EsignDocument? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}

@@ -1,4 +1,35 @@
 /**
+ * POST multipart com progresso real (XHR) para qualquer rota; devolve o JSON.
+ * Erros HTTP viram `Error(json.error)`.
+ */
+export function postFormWithProgress<T>(
+  endpoint: string,
+  body: FormData,
+  onProgress: (pct: number) => void,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", endpoint);
+    xhr.upload.addEventListener("progress", (e) => {
+      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+    });
+    xhr.addEventListener("load", () => {
+      let json: T & { error?: string };
+      try {
+        json = JSON.parse(xhr.responseText);
+      } catch {
+        reject(new Error(xhr.status === 413 ? "Arquivo grande demais." : "Resposta inválida do servidor"));
+        return;
+      }
+      if (xhr.status >= 200 && xhr.status < 300) resolve(json);
+      else reject(new Error(json.error ?? "Falha no envio"));
+    });
+    xhr.addEventListener("error", () => reject(new Error("Erro de rede no envio")));
+    xhr.send(body);
+  });
+}
+
+/**
  * Upload com progresso real via XHR (o fetch não expõe progresso de upload).
  * Usado no painel admin para enviar vídeo/material ao Drive.
  */

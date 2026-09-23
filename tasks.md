@@ -118,6 +118,25 @@ Meta: começar só com **Google Drive (padrão, grátis)** + **YouTube unlisted 
 - [ ] Pipeline de deploy no Coolify documentado (migrations no deploy, variáveis de ambiente).
 - [~] Revisão de segurança: **rate limit no upload** (`lib/rate-limit.ts`, 40/5min por usuário em `/api/admin/upload`). _Falta varredura final de RLS/segredos._
 
+## Fase 10 — Assinatura eletrônica de documentos
+
+> Módulo `server/esign` (agnóstico de UI, extraível para um produto próprio), painel em
+> `/admin/documentos`, página pública `/assinar/[token]`, validação em `/validar-documento`
+> e REST `/api/esign/v1` (Bearer `ESIGN_API_KEY`). Detalhes: `docs/esign.md`.
+
+- [x] **Fundação**: deps (`pdf-lib`, `react-pdf` 11, `signature_pad`, `qrcode`, `ua-parser-js` 1.x), migration `8_esign` (5 tabelas `Esign*`), Supabase Storage (bucket privado `esign`, service role), `ESIGN_*` no env.
+- [x] **Upload** do computador (drag&drop, 25 MB), **por link** (SSRF-safe; Drive/Dropbox viram download direto) e **pelo celular** (QR de uso único, sem login). Word recusado com mensagem clara.
+- [x] **Editor de campos**: vários signatários (nome/e-mail/CPF opcionais), campos Assinatura/Nome/CPF/Data com clique para posicionar, arrastar, redimensionar e teclado; salvamento automático.
+- [x] **Envio**: link pessoal por signatário, convite por e-mail (opcional), copiar link, WhatsApp, QR para assinatura presencial, reenviar, gerar novo link, cancelar.
+- [x] **Assinatura** (mobile-first): documento com campos em destaque → nome + CPF (+ código por e-mail, configurável) → desenhar / digitar / **com o dedo no celular via QR** → consentimento → registro.
+- [x] **PDF final**: carimbos nos campos + marca no rodapé + **Relatório de assinaturas** (logo, CNPJ, evidências por signatário, hashes, QR de validação). Regerado a cada assinatura; imutável ao concluir.
+- [x] **Evidências**: IP, dispositivo (desktop e celular), data/hora (Campo Grande + UTC), OTP, geolocalização opcional, SHA-256 do original/assinado/imagem, trilha de eventos encadeada por hash (`verifyAuditChain`).
+- [x] **Validação pública** por código + conferência do arquivo por hash no navegador.
+- [x] **PWA + Web Share Target**: painel instalável; PDF do WhatsApp → *Compartilhar* → abre "Novo documento" já carregado (Android/Chrome). iOS usa o QR.
+- [x] **REST v1** + gancho `sealWithCertificate` (selo ICP-Brasil A1 futuro).
+- [ ] ⚠️ **Resend com domínio verificado** — sem isso o código por e-mail não chega aos signatários (desligar "Exigir código por e-mail" até lá).
+- [ ] (Futuro) Word → PDF via Gotenberg; selo A1 com `@signpdf`; assinatura sequencial; webhooks da REST; WhatsApp Business Cloud API.
+
 ---
 
 ## Decisões registradas
@@ -131,6 +150,13 @@ Meta: começar só com **Google Drive (padrão, grátis)** + **YouTube unlisted 
 - **Sem headless CMS** — dados em Prisma + RLS.
 - **Matrícula**: **manual via admin** na fase atual (admin ativa curso p/ aluno cadastrado). Pagamento online (Mercado Pago) entra depois e cria matrícula via webhook.
 - **Gateway de pagamento**: **Mercado Pago** (decidido). API configurada em fase posterior (Fase 8).
+- **Assinatura eletrônica — validade**: assinatura eletrônica **avançada** (MP 2.200-2 art. 10 § 2º; Lei 14.063/2020 art. 4º II). Selo ICP-Brasil (e-CNPJ A1) fica como gancho (`server/esign/pdf/seal.ts`).
+- **Assinatura eletrônica — módulo**: lógica toda em `server/esign`, com uma única fronteira (`deps.ts`); modelos `Esign*` sem FK para `User` (snapshot do criador) — para virar produto/app próprio. UI (actions), páginas públicas e REST v1 são camadas finas.
+- **Assinatura eletrônica — storage**: Supabase Storage (bucket privado `esign`, service role) atrás de `EsignStorage` própria. Bytes sempre via rotas com autorização.
+- **Assinatura eletrônica — tokens**: 256 bits; no banco só o SHA-256 (busca) + versão AES-256-GCM (`ESIGN_SECRET`) para "copiar link" sem rotacionar.
+- **Assinatura eletrônica — Word**: fora do v1 (converter para PDF antes); gancho `originalMime` para Gotenberg.
+- **Painel como PWA**: instalável; `share_target` recebe PDFs do "Compartilhar" do Android. Service worker mínimo, sem cache de páginas.
+- **NAV do admin filtrado por role**: "Compras" e "Documentos" só aparecem para admin.
 
 ## A definir
 - [ ] Modelo de privacidade de vídeo definitivo (Drive/unlisted agora; Bunny/Cloudflare/Mux com signed URLs + trava de domínio ao escalar — Fase 4.1).

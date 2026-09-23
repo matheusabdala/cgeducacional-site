@@ -61,4 +61,14 @@ export const serverEnv = {
     const v = Number(process.env.MERCADOPAGO_PIX_DISCOUNT ?? "2");
     return Number.isFinite(v) && v >= 0 && v <= 90 ? v : 2;
   },
+  // --- Assinatura eletrônica (server/esign) ---
+  /** Segredo p/ cifrar links e assinar códigos (openssl rand -base64 32). */
+  esignSecret: () => required("ESIGN_SECRET", process.env.ESIGN_SECRET),
+  /** API key da REST /api/esign/v1 (Bearer). Vazia = API desligada (503). */
+  esignApiKey: () => process.env.ESIGN_API_KEY ?? "",
+  /** Bucket privado do Supabase Storage. */
+  esignStorageBucket: () => process.env.ESIGN_STORAGE_BUCKET || "esign",
+  /** Certificado e-CNPJ A1 (.p12 em base64) p/ selo ICP-Brasil — futuro. */
+  esignCertP12Base64: () => process.env.ESIGN_CERT_P12_BASE64 ?? "",
+  esignCertPassword: () => process.env.ESIGN_CERT_PASSWORD ?? "",
 };

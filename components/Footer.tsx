@@ -76,6 +76,14 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link
+                  href="/validar-documento"
+                  className="text-muted-foreground transition-colors hover:text-primary"
+                >
+                  Validar Documento
+                </Link>
+              </li>
+              <li>
                 <a
                   href="https://wa.me/556792001722"
                   target="_blank"
