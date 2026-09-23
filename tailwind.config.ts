@@ -54,19 +54,19 @@ const config: Config = {
           DEFAULT: "hsl(var(--brand-teal))",
           foreground: "hsl(var(--brand-teal-foreground))",
         },
-        // Paleta institucional CG (escala fixa — logo, ilustrações)
+        // Paleta institucional CG (escala fixa, matiz 226 derivada do logo #051A61)
         cg: {
-          50: "#f0f7ff",
-          100: "#e0effe",
-          200: "#bae0fd",
-          300: "#7cc8fb",
-          400: "#36aef6",
-          500: "#0c96e6",
-          600: "#0077c4",
-          700: "#015f9f",
-          800: "#065183",
-          900: "#0b446d",
-          950: "#072740",
+          50: "#f0f3ff",
+          100: "#dce4fe",
+          200: "#bacafc",
+          300: "#8ca5f8",
+          400: "#587bee",
+          500: "#355dde",
+          600: "#2a4dc0",
+          700: "#1d3da5",
+          800: "#122d87",
+          900: "#0b2474",
+          950: "#051a61", // = cor do logo
         },
       },
       fontFamily: {

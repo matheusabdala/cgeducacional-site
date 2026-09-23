@@ -11,4 +11,5 @@ Dockerfile
 .vscode
 .idea
 .zed
+.claude
 dist

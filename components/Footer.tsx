@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
-import { GraduationCap, Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 
 export const Footer: React.FC = () => {
   return (
@@ -8,14 +9,9 @@ export const Footer: React.FC = () => {
       <div className="container mx-auto px-4 py-12 md:px-6">
         <div className="grid gap-8 md:grid-cols-4">
           <div className="space-y-4">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-glow">
-                <GraduationCap size={22} />
-              </div>
-              <span className="text-lg font-semibold text-foreground">
-                CG Educacional
-              </span>
-            </div>
+            <Link href="/" className="inline-block" aria-label="CG Educacional — início">
+              <BrandLogo variant="stacked" className="h-16" sizes="110px" />
+            </Link>
             <p className="text-sm leading-relaxed text-muted-foreground">
               Transformando vidas através da educação de qualidade. Cursos
               livres, graduação, pós e EJA.
@@ -113,6 +109,7 @@ export const Footer: React.FC = () => {
         <div className="mt-10 border-t border-border pt-6 text-center text-sm text-muted-foreground">
           © {new Date().getFullYear()} CG Educacional. Todos os direitos
           reservados.
+          <span className="mt-1 block">CNPJ 53.123.217/0001-55</span>
         </div>
       </div>
     </footer>

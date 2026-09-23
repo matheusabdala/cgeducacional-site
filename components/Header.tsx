@@ -3,8 +3,9 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GraduationCap, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/brand-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NAV_ITEMS } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
@@ -19,11 +20,9 @@ export const Header: React.FC = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-glow">
-            <GraduationCap size={22} />
-          </div>
-          <span className="text-lg font-semibold tracking-tight text-foreground">
+        <Link href="/" className="flex items-center gap-2.5" aria-label="CG Educacional — início">
+          <BrandLogo className="h-7" sizes="60px" priority />
+          <span className="text-lg font-semibold tracking-tight text-cg-950 dark:text-white">
             CG Educacional
           </span>
         </Link>

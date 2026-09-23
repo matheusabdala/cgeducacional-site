@@ -3,8 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GraduationCap, LogOut, ChevronDown, Compass } from "lucide-react";
+import { LogOut, ChevronDown, Compass } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "@/components/brand-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
   DropdownMenu,
@@ -36,10 +37,8 @@ export function StudentHeader({
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-6">
           <Link href="/aprender" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-glow">
-              <GraduationCap size={20} />
-            </div>
-            <span className="hidden text-base font-semibold tracking-tight text-foreground sm:block">
+            <BrandLogo className="h-6" sizes="52px" priority />
+            <span className="hidden text-base font-semibold tracking-tight text-cg-950 dark:text-white sm:block">
               CG Educacional
             </span>
           </Link>

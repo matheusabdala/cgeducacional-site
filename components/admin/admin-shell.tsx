@@ -8,7 +8,6 @@ import {
   BookOpen,
   Users,
   ShoppingBag,
-  GraduationCap,
   Menu,
   X,
   ExternalLink,
@@ -17,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { BrandLogo } from "@/components/brand-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
   DropdownMenu,
@@ -82,11 +82,9 @@ export function AdminShell({
   const sidebarInner = (
     <div className="flex h-full flex-col gap-6 p-4">
       <Link href="/admin" className="flex items-center gap-2.5 px-1">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-glow">
-          <GraduationCap size={20} />
-        </div>
+        <BrandLogo className="h-6" sizes="52px" priority />
         <div className="leading-tight">
-          <span className="block text-sm font-semibold text-foreground">
+          <span className="block text-sm font-semibold text-cg-950 dark:text-white">
             CG Educacional
           </span>
           <span className="block text-xs text-muted-foreground">Painel</span>

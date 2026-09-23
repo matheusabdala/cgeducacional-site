@@ -5,7 +5,7 @@
 /*
  * Design system — "CG Modern"
  * Linguagem visual do prompt-design (near-black, luz ambiente, glows, sombras
- * em camadas) com o azul institucional CG (cg-*) como acento. Dois temas:
+ * em camadas) com o azul institucional CG (cg-*, mesma matiz do logo #051A61) como acento. Dois temas:
  *   :root  → claro (padrão, acolhedor p/ educação)
  *   .dark  → escuro moderno (estilo Linear)
  * Tokens em HSL (compatível com shadcn/ui — permite modificador de opacidade).
@@ -21,8 +21,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 24% 12%;
 
-    /* Marca — azul institucional CG (cg-600) */
-    --primary: 204 100% 38%;
+    /* Marca — azul institucional CG (cg-600, matiz 226 do logo) */
+    --primary: 226 64% 46%; /* #2A4DC0 */
     --primary-foreground: 0 0% 100%;
 
     /* Destaque secundário — teal */
@@ -43,10 +43,10 @@
     /* Linhas e foco */
     --border: 214 18% 90%;
     --input: 214 18% 88%;
-    --ring: 204 100% 38%;
+    --ring: 226 64% 46%;
 
     /* Luz ambiente / glow (RGB separado p/ rgba(var(--glow)/.x)) */
-    --glow: 12 150 230;
+    --glow: 53 93 222; /* cg-500 */
 
     --radius: 0.75rem;
   }
@@ -60,8 +60,8 @@
     --popover: 240 10% 4%;
     --popover-foreground: 240 6% 93%;
 
-    /* Marca — cg um tom mais claro p/ contraste no escuro (cg-500) */
-    --primary: 202 90% 47%;
+    /* Marca — cg um tom mais claro p/ contraste no escuro (entre cg-400 e cg-500) */
+    --primary: 226 80% 60%; /* #476DEB — claro o bastante p/ fundo escuro (AA) */
     --primary-foreground: 0 0% 100%;
 
     --brand-teal: 172 70% 45%;
@@ -79,9 +79,9 @@
 
     --border: 240 6% 15%;
     --input: 240 6% 17%;
-    --ring: 202 90% 47%;
+    --ring: 226 80% 60%;
 
-    --glow: 40 170 240;
+    --glow: 88 123 238; /* cg-400 */
   }
 }
 
