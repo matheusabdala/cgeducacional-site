@@ -276,7 +276,7 @@ export function FieldEditor({
     // Recarga completa para a tela de acompanhamento: a navegação suave logo após
     // esta action (que revalida a rota) não trocava o editor pela página nova.
     leaving.current = true;
-    window.location.assign(`/admin/documentos/${doc.id}?enviado=1`);
+    window.location.assign(`/admin/documentos/${doc.id}?enviado=1${res.emailFailed ? `&falhou=${res.emailFailed}` : ""}`);
   }
 
   const activeIndex = signers.findIndex((s) => s.key === active);

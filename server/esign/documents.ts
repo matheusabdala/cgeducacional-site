@@ -353,6 +353,22 @@ export async function cancelDocument(id: string, ctx: EsignContext) {
   });
 }
 
+/**
+ * Dispensa o código por e-mail de um documento já enviado (ex.: e-mail fora do
+ * ar ou assinatura presencial). Fica registrado na trilha de auditoria.
+ */
+export async function waiveOtp(id: string, ctx: EsignContext) {
+  await db.$transaction(async (tx) => {
+    await lockDocument(tx, id);
+    const doc = await tx.esignDocument.findUnique({ where: { id }, select: { status: true, requireOtp: true } });
+    if (!doc) throw new EsignError("not_found", "Documento não encontrado.");
+    if (doc.status !== "pending") throw new EsignError("immutable", "Só é possível mudar isso em documentos aguardando assinatura.");
+    if (!doc.requireOtp) return;
+    await tx.esignDocument.update({ where: { id }, data: { requireOtp: false } });
+    await appendEvent(tx, { documentId: id, type: "otp_waived", ctx, data: { by: ctx.actor?.name ?? "api" } });
+  });
+}
+
 /** Rascunhos podem ser apagados (não há evidência a preservar). */
 export async function deleteDraft(id: string) {
   const doc = await db.esignDocument.findUnique({ where: { id }, select: { status: true, originalPath: true } });

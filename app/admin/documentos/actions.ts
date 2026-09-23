@@ -20,6 +20,7 @@ import {
   rotateSignerLink,
   saveDraft,
   sendDocument,
+  waiveOtp,
   type EsignContext,
 } from "@/server/esign";
 
@@ -54,12 +55,17 @@ export async function saveDraftAction(
 export async function sendDocumentAction(
   id: string,
   opts: { sendEmails: boolean },
-): Promise<{ ok?: true; emailed?: number; error?: string }> {
+): Promise<{ ok?: true; emailed?: number; emailFailed?: number; error?: string }> {
   const ctx = await adminCtx();
   try {
     const res = await sendDocument(id, { sendEmails: Boolean(opts?.sendEmails) }, ctx);
     revalidate(id);
-    return { ok: true, emailed: res.links.filter((l) => l.emailStatus?.sent).length };
+    const tried = res.links.filter((l) => l.emailStatus);
+    return {
+      ok: true,
+      emailed: tried.filter((l) => l.emailStatus?.sent).length,
+      emailFailed: tried.filter((l) => !l.emailStatus?.sent).length,
+    };
   } catch (e) {
     return { error: errorMessage(e, "Não foi possível enviar o documento.") };
   }
@@ -143,7 +149,7 @@ export async function resendInviteAction(
     revalidate(documentId);
     if (res.sent) return { ok: true };
     if ("skipped" in res && res.skipped) return { ok: true, skipped: true };
-    return { error: "Não foi possível enviar o e-mail." };
+    return { error: "O e-mail não pôde ser enviado (serviço de e-mail indisponível). Copie o link e envie pelo WhatsApp." };
   } catch (e) {
     return { error: errorMessage(e) };
   }
@@ -153,6 +159,17 @@ export async function cancelDocumentAction(id: string): Promise<{ ok?: true; err
   const ctx = await adminCtx();
   try {
     await cancelDocument(id, ctx);
+    revalidate(id);
+    return { ok: true };
+  } catch (e) {
+    return { error: errorMessage(e) };
+  }
+}
+
+export async function waiveOtpAction(id: string): Promise<{ ok?: true; error?: string }> {
+  const ctx = await adminCtx();
+  try {
+    await waiveOtp(id, ctx);
     revalidate(id);
     return { ok: true };
   } catch (e) {

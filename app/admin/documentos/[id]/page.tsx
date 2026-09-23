@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { DocumentStatusBadge } from "@/components/esign/document-status";
 import { FieldEditor } from "@/components/esign/field-editor";
 import { SignerActions } from "@/components/esign/signer-actions";
-import { CancelDocumentButton, DeleteDraftButton } from "@/components/esign/document-actions";
+import { CancelDocumentButton, DeleteDraftButton, WaiveOtpButton } from "@/components/esign/document-actions";
 import { Timeline } from "@/components/esign/timeline";
 import { AutoRefresh } from "@/components/esign/auto-refresh";
 import { SIGNER_COLORS } from "@/components/esign/signer-colors";
@@ -37,11 +37,13 @@ export default async function DocumentoPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ enviado?: string }>;
+  searchParams: Promise<{ enviado?: string; falhou?: string }>;
 }) {
   await requireRole(["admin"], "/admin/documentos");
   const { id } = await params;
-  const justSent = (await searchParams).enviado === "1";
+  const sp = await searchParams;
+  const justSent = sp.enviado === "1";
+  const emailFailed = Number(sp.falhou ?? 0) || 0;
   let doc: Awaited<ReturnType<typeof getDocument>>;
   try {
     doc = await getDocument(id);
@@ -144,6 +146,13 @@ export default async function DocumentoPage({
             <strong>WhatsApp</strong> ou <strong>QR</strong> (para quem está aí no balcão). Esta página atualiza o
             andamento conforme as assinaturas chegam.
           </p>
+        </div>
+      )}
+
+      {justSent && emailFailed > 0 && (
+        <div role="alert" className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-foreground">
+          <strong>{emailFailed === 1 ? "1 convite não pôde" : `${emailFailed} convites não puderam`} ser enviado(s) por e-mail.</strong>{" "}
+          O serviço de e-mail está indisponível no momento — use <strong>Copiar link</strong> ou <strong>WhatsApp</strong>.
         </div>
       )}
 
@@ -267,7 +276,18 @@ export default async function DocumentoPage({
             </h2>
             <Row label="Código" value={<span className="font-mono">{doc.code}</span>} />
             <Row label="Páginas" value={doc.pageCount} />
-            <Row label="Código por e-mail" value={doc.requireOtp ? "Exigido" : "Não exigido"} />
+            <Row
+              label="Código por e-mail"
+              value={
+                doc.requireOtp ? (
+                  <span className="inline-flex items-center gap-2">
+                    Exigido {doc.status === "pending" && <WaiveOtpButton id={doc.id} />}
+                  </span>
+                ) : (
+                  "Não exigido"
+                )
+              }
+            />
             <div className="mt-2 space-y-1 text-xs">
               <p className="text-muted-foreground">SHA-256 do original</p>
               <p className="break-all font-mono text-foreground">{doc.originalSha256}</p>

@@ -38,6 +38,7 @@ const ICON: Record<string, React.ElementType> = {
   completed: CheckCircle2,
   cancelled: XCircle,
   link_rotated: RefreshCw,
+  otp_waived: KeyRound,
 };
 
 function describe(e: Event, signerName: (id: string | null) => string): { title: string; detail?: string } {
@@ -49,12 +50,13 @@ function describe(e: Event, signerName: (id: string | null) => string): { title:
     case "sent":
       return { title: "Enviado para assinatura", detail: Array.isArray(d.signers) ? (d.signers as string[]).join(", ") : undefined };
     case "email_sent":
-      return d.skipped
-        ? { title: `E-mail para ${who} não enviado`, detail: "Serviço de e-mail desligado — envie o link manualmente." }
-        : { title: `Convite enviado por e-mail para ${who}`, detail: String(d.to ?? "") };
+      if (d.skipped) return { title: `E-mail para ${who} não enviado`, detail: "Serviço de e-mail desligado — envie o link manualmente." };
+      if (d.ok === false) return { title: `Falha ao enviar o convite por e-mail para ${who}`, detail: `${d.to ?? ""} · envie o link pelo WhatsApp` };
+      return { title: `Convite enviado por e-mail para ${who}`, detail: String(d.to ?? "") };
     case "link_opened":
       return { title: `${who} abriu o link`, detail: String(d.device ?? "") };
     case "otp_sent":
+      if (d.ok === false) return { title: `Falha ao enviar o código de verificação para ${who}`, detail: `${d.to ?? ""} · e-mail indisponível` };
       return { title: `Código de verificação enviado para ${who}`, detail: String(d.to ?? "") };
     case "otp_verified":
       return { title: `${who} confirmou o código do e-mail`, detail: String(d.email ?? "") };
@@ -73,6 +75,8 @@ function describe(e: Event, signerName: (id: string | null) => string): { title:
       return { title: "Documento concluído — todas as assinaturas coletadas" };
     case "cancelled":
       return { title: `Documento cancelado por ${d.by ?? "—"}` };
+    case "otp_waived":
+      return { title: `Código por e-mail dispensado por ${d.by ?? "—"}` };
     case "link_rotated":
       return { title: `Novo link gerado para ${who}` };
     default:

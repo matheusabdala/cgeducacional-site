@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Ban, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/admin/confirm-button";
-import { cancelDocumentAction, deleteDraftAction } from "@/app/admin/documentos/actions";
+import { cancelDocumentAction, deleteDraftAction, waiveOtpAction } from "@/app/admin/documentos/actions";
 
 export function CancelDocumentButton({ id }: { id: string }) {
   const router = useRouter();
@@ -26,6 +26,28 @@ export function CancelDocumentButton({ id }: { id: string }) {
       <Button variant="outline" className="text-destructive hover:text-destructive">
         <Ban size={16} /> Cancelar
       </Button>
+    </ConfirmButton>
+  );
+}
+
+export function WaiveOtpButton({ id }: { id: string }) {
+  return (
+    <ConfirmButton
+      title="Dispensar o código por e-mail?"
+      description="Quem ainda não assinou poderá assinar só com o link pessoal (sem o código). Use se o e-mail não está chegando ou se a assinatura é presencial. A mudança fica registrada no histórico."
+      confirmLabel="Dispensar código"
+      onConfirm={async () => {
+        const res = await waiveOtpAction(id);
+        if (res.error) toast.error(res.error);
+        else {
+          toast.success("Código dispensado. Peça para a pessoa recarregar a página de assinatura.");
+          window.location.reload();
+        }
+      }}
+    >
+      <button type="button" className="text-xs font-medium text-primary hover:underline">
+        Dispensar
+      </button>
     </ConfirmButton>
   );
 }

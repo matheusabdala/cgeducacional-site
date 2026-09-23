@@ -209,13 +209,14 @@ Guard: **só admin** (`requireRole(["admin"])`). Chamam `server/esign` com o ato
 | Action | Papel |
 |---|---|
 | `saveDraftAction(id, draft)` | Salva o rascunho inteiro (título, opções, signatários, campos); devolve `key → id` dos signatários |
-| `sendDocumentAction(id, { sendEmails })` | Gera os links e (opcional) envia convites; retorna `{ emailed }` |
+| `sendDocumentAction(id, { sendEmails })` | Gera os links e (opcional) envia convites; retorna `{ emailed, emailFailed }` |
 | `createFromUrlAction(url)` | Importa PDF de um link público (SSRF-safe) |
 | `createPhoneUploadAction()` / `phoneUploadStatusAction(code)` | QR para enviar o PDF pelo celular + polling |
 | `getSignerLinkAction(signerId)` | Link atual (descriptografado) |
 | `rotateSignerLinkAction(signerId, documentId)` | Novo link (o anterior para de funcionar) |
 | `resendInviteAction(signerId, documentId)` | Reenvia o convite por e-mail |
 | `cancelDocumentAction(id)` / `deleteDraftAction(id)` | Cancela documento / apaga rascunho |
+| `waiveOtpAction(id)` | Dispensa o código por e-mail de um documento aguardando assinatura (evento `otp_waived` na trilha) |
 
 ### Público · Assinatura — `app/(esign)/assinar/[token]/actions.ts`
 Sem login: autorizadas pelo **token do link**; rate limit por IP.
