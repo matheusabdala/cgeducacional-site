@@ -4,16 +4,7 @@ import type { Prisma, CourseCategory } from "@prisma/client";
 import { getCurrentProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/components/ui/table";
-import { CourseRowActions } from "@/components/admin/course-row-actions";
+import { CourseTable } from "@/components/admin/course-table";
 import {
   CourseFilters,
   type CourseSearchParams,
@@ -50,6 +41,7 @@ export default async function CursosPage({
   const q = params.q?.trim() ?? "";
   const category = params.category;
   const status = params.status;
+  const favOnly = params.fav === "1";
   const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
 
   const where: Prisma.CourseWhereInput = {
@@ -60,6 +52,7 @@ export default async function CursosPage({
     ...(category && CATEGORY_VALUES.has(category)
       ? { category: category as CourseCategory }
       : {}),
+    ...(favOnly ? { favorites: { some: { userId: profile!.id } } } : {}),
     ...(status === "published"
       ? { published: true }
       : status === "draft"
@@ -80,13 +73,15 @@ export default async function CursosPage({
         category: true,
         price: true,
         published: true,
+        // Só a estrela do usuário logado (favorito é por usuário).
+        favorites: { where: { userId: profile!.id }, select: { userId: true } },
         _count: { select: { modules: true, enrollments: true } },
       },
     }),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
-  const isFiltered = Boolean(q || category || status);
+  const isFiltered = Boolean(q || category || status || favOnly);
   const from = total === 0 ? 0 : (page - 1) * PER_PAGE + 1;
   const to = Math.min(page * PER_PAGE, total);
 
@@ -141,55 +136,18 @@ export default async function CursosPage({
         </div>
       ) : (
         <>
-          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead>Curso</TableHead>
-                  <TableHead className="hidden md:table-cell">Categoria</TableHead>
-                  <TableHead className="hidden sm:table-cell">Conteúdo</TableHead>
-                  <TableHead className="hidden lg:table-cell">Preço</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-12" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {courses.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell>
-                      <Link
-                        href={`/admin/cursos/${c.id}`}
-                        className="font-medium text-foreground hover:text-primary"
-                      >
-                        {c.title}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="hidden text-muted-foreground md:table-cell">
-                      {CATEGORY_LABEL[c.category] ?? c.category}
-                    </TableCell>
-                    <TableCell className="hidden text-muted-foreground sm:table-cell">
-                      {c._count.modules} mód · {c._count.enrollments} alunos
-                    </TableCell>
-                    <TableCell className="hidden text-muted-foreground lg:table-cell">
-                      {brl(Number(c.price))}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={c.published ? "default" : "secondary"}>
-                        {c.published ? "Publicado" : "Rascunho"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <CourseRowActions
-                        id={c.id}
-                        title={c.title}
-                        published={c.published}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <CourseTable
+            courses={courses.map((c) => ({
+              id: c.id,
+              title: c.title,
+              categoryLabel: CATEGORY_LABEL[c.category] ?? c.category,
+              modules: c._count.modules,
+              students: c._count.enrollments,
+              priceLabel: brl(Number(c.price)),
+              published: c.published,
+              favorite: c.favorites.length > 0,
+            }))}
+          />
 
           <Pagination
             page={page}

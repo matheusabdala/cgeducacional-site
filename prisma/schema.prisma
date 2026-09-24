@@ -88,6 +88,7 @@ model User {
   lessonProgress  LessonProgress[]
   certificates    Certificate[]
   orders          Order[]
+  favoriteCourses CourseFavorite[]
 
   @@index([role])
 }
@@ -131,10 +132,24 @@ model Course {
   enrollments  Enrollment[]
   certificates Certificate[]
   orders       Order[]
+  favorites    CourseFavorite[]
 
   @@index([instructorId])
   @@index([category])
   @@index([published])
+}
+
+/// Curso marcado com estrela no painel admin (por usuário) — atalho de filtro.
+model CourseFavorite {
+  userId    String   @db.Uuid
+  courseId  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@id([userId, courseId])
+  @@index([courseId])
 }
 
 model Module {

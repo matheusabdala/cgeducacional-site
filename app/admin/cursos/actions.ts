@@ -9,6 +9,7 @@ import {
   courseSchema,
   moduleSchema,
   lessonSchema,
+  courseIdsSchema,
 } from "@/lib/validations/course";
 
 type Result = { error?: string; ok?: boolean };
@@ -161,6 +162,72 @@ export async function deleteCourse(id: string): Promise<Result> {
   await prisma.course.delete({ where: { id } });
   revalidatePath("/admin/cursos");
   redirect("/admin/cursos");
+}
+
+// --- Ações em massa / favoritos (listagem) -------------------------------
+
+/**
+ * Valida a seleção e devolve o filtro `where` restrito ao que o usuário pode
+ * mexer (instrutor só os próprios cursos; ids alheios são ignorados).
+ */
+async function scopedCourseIds(ids: unknown) {
+  const profile = await requireRole(["admin", "instructor"], "/admin");
+  const parsed = courseIdsSchema.safeParse(ids);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Seleção inválida" };
+  }
+  return {
+    where: {
+      id: { in: parsed.data },
+      ...(profile.role === "admin" ? {} : { instructorId: profile.id }),
+    },
+  };
+}
+
+/** Publica/despublica vários cursos de uma vez. */
+export async function bulkSetPublished(
+  ids: string[],
+  published: boolean,
+): Promise<Result & { count?: number }> {
+  const scope = await scopedCourseIds(ids);
+  if ("error" in scope) return { error: scope.error };
+  const { count } = await prisma.course.updateMany({
+    where: scope.where,
+    data: { published: Boolean(published) },
+  });
+  revalidatePath("/admin/cursos");
+  return { ok: true, count };
+}
+
+/** Exclui vários cursos (cascata em módulos, aulas e matrículas). */
+export async function bulkDeleteCourses(
+  ids: string[],
+): Promise<Result & { count?: number }> {
+  const scope = await scopedCourseIds(ids);
+  if ("error" in scope) return { error: scope.error };
+  const { count } = await prisma.course.deleteMany({ where: scope.where });
+  revalidatePath("/admin/cursos");
+  return { ok: true, count };
+}
+
+/** Marca/desmarca o curso como favorito do usuário logado. */
+export async function toggleFavorite(
+  courseId: string,
+  favorite: boolean,
+): Promise<Result> {
+  const profile = await assertCourseAccess(courseId);
+  const key = { userId: profile.id, courseId };
+  if (favorite) {
+    await prisma.courseFavorite.upsert({
+      where: { userId_courseId: key },
+      create: key,
+      update: {},
+    });
+  } else {
+    await prisma.courseFavorite.deleteMany({ where: key });
+  }
+  revalidatePath("/admin/cursos");
+  return { ok: true };
 }
 
 // --- Módulo -------------------------------------------------------------

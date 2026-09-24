@@ -66,7 +66,7 @@ lib/                auth, access (gate de aula), learn (drip/sequencial), catalo
                     supabase/{client,server}, validations/, rate-limit, cpf, card, pricing
 server/             integrações server-only: media/ (Drive, YouTube), certimaker/, payments/
                     (mercadopago, orders), email/, gemini/, esign/ (assinatura eletrônica)
-prisma/             schema, migrations (0_init … 8_esign), rls.sql, seeds,
+prisma/             schema, migrations (0_init … 9_course_favorites), rls.sql, seeds,
                     import-catalog.ts + data/catalog-courses.json
 constants.ts, types.ts   legado do Vite (tipos da vitrine, WhatsApp link)
 docs/api.md         referência VIVA da API (ver regra abaixo)
@@ -76,7 +76,7 @@ tasks.md            roadmap por fases com status
 
 ## Domínio (Prisma)
 
-`User` (id = `auth.users.id`, `role`: student | instructor | admin, `cpf` único) · `Course` (slug, categoria, preço, dados acadêmicos p/ certificado, opções `requireSequential` e drip, ids cacheados do Certimaker) → `Module` → `Lesson` (`videoProvider` + `videoRef`, `content` texto, `documentFileId` PDF inline, `materialFileId` download) · `Enrollment` · `LessonProgress` · `Certificate` (code + URL do Certimaker) · `Order` (status initiated→pending→approved…, `mpPaymentId`) · `Esign*` (assinatura: `EsignDocument` → `EsignSigner`/`EsignField`, `EsignEvent` trilha, `EsignSession` QR — sem FK p/ `User`).
+`User` (id = `auth.users.id`, `role`: student | instructor | admin, `cpf` único) · `Course` (slug, categoria, preço, dados acadêmicos p/ certificado, opções `requireSequential` e drip, ids cacheados do Certimaker) → `Module` → `Lesson` (`videoProvider` + `videoRef`, `content` texto, `documentFileId` PDF inline, `materialFileId` download) · `Enrollment` · `LessonProgress` · `Certificate` (code + URL do Certimaker) · `Order` (status initiated→pending→approved…, `mpPaymentId`) · `CourseFavorite` (estrela do curso por usuário no admin) · `Esign*` (assinatura: `EsignDocument` → `EsignSigner`/`EsignField`, `EsignEvent` trilha, `EsignSession` QR — sem FK p/ `User`).
 
 ## Fluxos principais
 

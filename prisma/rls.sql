@@ -178,3 +178,10 @@ create policy "esign_event_admin_all" on "EsignEvent"
   for all using (public.is_admin()) with check (public.is_admin());
 create policy "esign_session_admin_all" on "EsignSession"
   for all using (public.is_admin()) with check (public.is_admin());
+
+-- CourseFavorite (estrela de curso no painel, por usuário) ------------------
+
+alter table "CourseFavorite" enable row level security;
+
+create policy "course_favorite_own" on "CourseFavorite"
+  for all using ("userId" = auth.uid()) with check ("userId" = auth.uid());

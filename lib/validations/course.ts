@@ -96,3 +96,9 @@ export const lessonSchema = z.object({
 export type CourseInput = z.infer<typeof courseSchema>;
 export type ModuleInput = z.infer<typeof moduleSchema>;
 export type LessonInput = z.infer<typeof lessonSchema>;
+
+/** Seleção em massa na listagem de cursos do admin. */
+export const courseIdsSchema = z
+  .array(z.string().min(1).max(64))
+  .min(1, "Selecione ao menos um curso")
+  .max(200, "Selecione no máximo 200 cursos por vez");

@@ -163,6 +163,8 @@ Guard: admin ou dono do curso. Inclui a integração Certimaker.
 | `generateCourseDraft(hints)` | IA (Gemini): sugere título, descrição, conteúdo programático, carga horária, nível e categoria a partir de dicas livres. Ver `ai-actions.ts` |
 | `createCourse` / `updateCourse` / `deleteCourse` | CRUD de curso |
 | `togglePublish(...)` | Publica/despublica |
+| `bulkSetPublished(ids, published)` / `bulkDeleteCourses(ids)` | Ações em massa da listagem (até 200 ids, Zod `courseIdsSchema`). Instrutor: ids de cursos alheios são ignorados. Retorna `{ ok, count }` |
+| `toggleFavorite(courseId, favorite)` | Estrela do curso para o usuário logado (`CourseFavorite`); filtro `?fav=1` em `/admin/cursos` |
 | `createModule` / `updateModule` / `deleteModule` | CRUD de módulo |
 | `moveModule(...)` / `reorderModules(...)` | Reordenação (troca vizinho / drag&drop) |
 | `createLesson` / `updateLesson` / `deleteLesson` | CRUD de aula |

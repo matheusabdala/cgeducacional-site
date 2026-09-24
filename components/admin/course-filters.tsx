@@ -3,7 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, X } from "lucide-react";
+import { Search, Star, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +24,8 @@ export type CourseSearchParams = {
   category?: string;
   status?: string;
   sort?: string;
+  /** "1" = só os favoritos do usuário logado. */
+  fav?: string;
   page?: string;
 };
 
@@ -63,8 +66,9 @@ export function CourseFilters({ params }: { params: CourseSearchParams }) {
   }, [q, params.q, buildUrl, router]);
 
   const hasFilters = Boolean(
-    params.q || params.category || params.status || params.sort,
+    params.q || params.category || params.status || params.sort || params.fav,
   );
+  const favOnly = params.fav === "1";
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -82,6 +86,23 @@ export function CourseFilters({ params }: { params: CourseSearchParams }) {
           className="pl-9"
         />
       </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        aria-pressed={favOnly}
+        onClick={() =>
+          router.push(buildUrl({ fav: favOnly ? undefined : "1" }))
+        }
+        className={cn(
+          "gap-1.5 transition-colors duration-200",
+          favOnly &&
+            "border-amber-400 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20",
+        )}
+      >
+        <Star size={16} className={cn(favOnly && "fill-current")} />
+        Favoritos
+      </Button>
 
       <Select
         value={params.category ?? ALL}
