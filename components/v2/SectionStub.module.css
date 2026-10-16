@@ -1,0 +1,52 @@
+/* Placeholder honesto de seção. */
+
+.stub {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: clamp(20px, 3vw, 34px);
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--v2-radius-lg);
+  background: hsl(var(--card) / 0.3);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--v2-fs-label);
+}
+
+.index {
+  letter-spacing: 0.1em;
+  color: hsl(var(--muted-foreground));
+}
+
+.tag {
+  padding: 1px 7px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.name {
+  margin: 0;
+  font-size: var(--v2-fs-h3);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: hsl(var(--foreground) / 0.62);
+}
+
+.intent {
+  max-width: 56ch;
+  margin: 0;
+  font-size: var(--v2-fs-sm);
+  line-height: 1.55;
+  color: hsl(var(--muted-foreground));
+  text-wrap: pretty;
+}

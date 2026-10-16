@@ -1,0 +1,514 @@
+/*
+ * Hero da v2. CSS Module puro, nenhuma classe de utilitário.
+ * As cores das regiões vivem aqui e são lidas pelo motor do canvas, então
+ * trocar de tema é CSS e nada mais.
+ */
+
+.hero {
+  --brain-gain: 1.55; /* fundo claro engole tinta: compensa no claro */
+  --brain-ink: 48 68 130;
+  --brain-pulse: 255 255 255;
+  --brain-c0: 29 61 165; /* pré-frontal */
+  --brain-c1: 42 77 192; /* frontal */
+  --brain-c2: 53 93 222; /* parietal */
+  --brain-c3: 13 118 107; /* temporal */
+  --brain-c4: 17 148 134; /* occipital */
+  --brain-c5: 10 92 85; /* cerebelo */
+  --brain-c6: 96 110 140; /* tronco */
+  --glow-a: 0.22; /* luz do cursor: o claro precisa de mais alfa que o escuro */
+
+  position: relative;
+  z-index: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  background: hsl(var(--background));
+  overflow: hidden;
+}
+
+:global(.dark) .hero {
+  --brain-gain: 1.3;
+  --brain-ink: 128 150 215;
+  --brain-pulse: 232 240 255;
+  --brain-c0: 120 150 252;
+  --brain-c1: 88 123 238;
+  --brain-c2: 71 109 235;
+  --brain-c3: 45 196 178;
+  --brain-c4: 56 214 196;
+  --brain-c5: 26 160 146;
+  --brain-c6: 130 145 180;
+  --glow-a: 0.14;
+}
+
+/* Luz do cursor: um único elemento composto na GPU, entre o fundo e o
+   conteúdo. Some no toque e com movimento reduzido. */
+.glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 440px;
+  height: 440px;
+  margin: -220px 0 0 -220px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgb(var(--brain-c2) / var(--glow-a)),
+    rgb(var(--brain-c2) / calc(var(--glow-a) * 0.36)) 44%,
+    transparent 68%
+  );
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+  transition:
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 320ms ease-out;
+}
+
+.glow[data-on="true"] {
+  opacity: 0.75;
+}
+
+.glow[data-hot="true"] {
+  opacity: 1;
+}
+
+.inner {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  gap: clamp(20px, 3vh, 34px);
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: clamp(16px, 2.4vh, 32px) clamp(16px, 4vw, 40px) clamp(16px, 2.4vh, 28px);
+}
+
+@media (min-width: 1000px) {
+  .inner {
+    grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+    align-items: center;
+    gap: clamp(24px, 3.4vw, 56px);
+  }
+}
+
+/* --- coluna da esquerda: o conteúdo --------------------------------------- */
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(12px, 1.8vh, 20px);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 5px 13px 5px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  background: hsl(var(--card) / 0.7);
+  backdrop-filter: blur(6px);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+}
+
+.eyebrowDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: hsl(var(--brand-teal));
+  animation: ping 2.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes ping {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--brand-teal) / 0.45);
+  }
+  60% {
+    box-shadow: 0 0 0 7px hsl(var(--brand-teal) / 0);
+  }
+}
+
+.title {
+  max-width: 16ch;
+  margin: 0;
+  font-size: clamp(1.9rem, 3.1vw, 2.9rem);
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -0.028em;
+  text-wrap: balance;
+  color: hsl(var(--foreground));
+}
+
+/* destaque por matiz e peso, não por gradiente com brilho correndo */
+.title em {
+  font-style: normal;
+  color: hsl(var(--primary));
+}
+
+.lede {
+  max-width: 44ch;
+  margin: 0;
+  font-size: clamp(0.9375rem, 1.05vw, 1.0625rem);
+  line-height: 1.55;
+  color: hsl(var(--muted-foreground));
+  text-wrap: pretty;
+}
+
+/* --- as quatro frentes --------------------------------------------------- */
+
+.tracks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.track {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 11px 30px 11px 13px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  background: hsl(var(--card) / 0.66);
+  backdrop-filter: blur(6px);
+  text-decoration: none;
+  transition:
+    border-color 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.track:hover {
+  border-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--card));
+  transform: translateY(-2px);
+}
+
+.track:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.trackName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.trackNote {
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: hsl(var(--muted-foreground));
+}
+
+.trackArrow {
+  position: absolute;
+  top: 11px;
+  right: 12px;
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.track:hover .trackArrow {
+  transform: translateX(3px);
+  color: hsl(var(--primary));
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ctaPrimary,
+.ctaGhost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ctaPrimary {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  box-shadow: 0 1px 2px hsl(var(--primary) / 0.3);
+}
+
+.ctaPrimary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px hsl(var(--primary) / 0.28);
+}
+
+.ctaGhost {
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card) / 0.66);
+  color: hsl(var(--foreground));
+}
+
+.ctaGhost:hover {
+  transform: translateY(-2px);
+  background: hsl(var(--card));
+}
+
+.ctaPrimary:focus-visible,
+.ctaGhost:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 3px;
+}
+
+/* --- coluna da direita: a demonstração ----------------------------------- */
+
+.showcase {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  height: clamp(280px, 44vh, 470px);
+  touch-action: pan-y;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 800ms cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: crosshair;
+}
+
+.stage[data-ready="true"] .canvas {
+  opacity: 1;
+}
+
+/* onda de choque do clique, atravessando o tecido */
+.ring {
+  position: absolute;
+  width: 150vmax;
+  height: 150vmax;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    transparent 56%,
+    rgb(var(--brain-c2) / 0.16) 63%,
+    rgb(var(--brain-c4) / 0.1) 68%,
+    transparent 74%
+  );
+}
+
+.tag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 14px 0 0 14px;
+  padding: 6px 11px;
+  border: 1px solid rgb(var(--brain-ink) / 0.3);
+  border-radius: 8px;
+  background: hsl(var(--card) / 0.88);
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease-out;
+}
+
+.tag[data-on="true"] {
+  opacity: 1;
+}
+
+.tagFn {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.tagName {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+/* --- legenda das regiões ------------------------------------------------- */
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  background: hsl(var(--card) / 0.62);
+  backdrop-filter: blur(6px);
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition:
+    border-color 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    color 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chip[data-region="0"] { --reg: var(--brain-c0); }
+.chip[data-region="1"] { --reg: var(--brain-c1); }
+.chip[data-region="2"] { --reg: var(--brain-c2); }
+.chip[data-region="3"] { --reg: var(--brain-c3); }
+.chip[data-region="4"] { --reg: var(--brain-c4); }
+.chip[data-region="5"] { --reg: var(--brain-c5); }
+.chip[data-region="6"] { --reg: var(--brain-c6); }
+
+.chip:hover,
+.chip[data-on="true"] {
+  border-color: rgb(var(--reg) / 0.6);
+  color: hsl(var(--foreground));
+}
+
+.chip:focus-visible {
+  outline: 2px solid rgb(var(--reg));
+  outline-offset: 2px;
+}
+
+.chipDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgb(var(--reg));
+  transition: box-shadow 360ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chip[data-on="true"] .chipDot {
+  box-shadow: 0 0 0 4px rgb(var(--reg) / 0.22);
+}
+
+/* --- instrumentos do laboratório ---------------------------------------- */
+
+.hud {
+  position: absolute;
+  top: 10px;
+  right: clamp(16px, 4vw, 40px);
+  z-index: 2;
+  display: flex;
+  gap: 7px;
+  margin: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+}
+
+.hudSep {
+  opacity: 0.4;
+}
+
+.hudFps {
+  min-width: 3.6em;
+}
+
+@media (max-width: 999px) {
+  .copy {
+    align-items: center;
+    text-align: center;
+  }
+  .title,
+  .lede {
+    max-width: none;
+  }
+  .tracks {
+    max-width: none;
+  }
+  .actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .hud {
+    display: none;
+  }
+  .tracks {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .stage {
+    height: clamp(240px, 34vh, 330px);
+  }
+}
+
+@media (pointer: coarse) {
+  .canvas {
+    cursor: default;
+  }
+  .glow {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow {
+    display: none;
+  }
+  .eyebrowDot {
+    animation: none;
+  }
+  .canvas,
+  .tag,
+  .chip,
+  .chipDot,
+  .track,
+  .trackArrow,
+  .ctaPrimary,
+  .ctaGhost {
+    transition: none;
+  }
+  .track:hover,
+  .ctaPrimary:hover,
+  .ctaGhost:hover {
+    transform: none;
+  }
+  .track:hover .trackArrow {
+    transform: none;
+  }
+}

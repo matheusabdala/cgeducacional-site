@@ -1,0 +1,267 @@
+/* Player de aula. CSS Module puro — nenhuma classe de utilitário. */
+
+.player {
+  --r0: var(--brain-c0);
+  --r1: var(--brain-c1);
+  --r2: var(--brain-c2);
+  --r3: var(--brain-c3);
+  --r4: var(--brain-c4);
+  --r5: var(--brain-c5);
+  --r6: var(--brain-c6);
+
+  width: 100%;
+  padding: 13px clamp(14px, 2vw, 22px) 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 14px;
+  background: hsl(var(--card) / 0.72);
+  backdrop-filter: blur(10px);
+}
+
+/* CSS Modules exige classe local no seletor — daí o escopo em .player. */
+.player [data-region="0"] { --seg: var(--r0); }
+.player [data-region="1"] { --seg: var(--r1); }
+.player [data-region="2"] { --seg: var(--r2); }
+.player [data-region="3"] { --seg: var(--r3); }
+.player [data-region="4"] { --seg: var(--r4); }
+.player [data-region="5"] { --seg: var(--r5); }
+.player [data-region="6"] { --seg: var(--r6); }
+
+/* --- cabeçalho ----------------------------------------------------------- */
+
+.head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 11px;
+}
+
+.badge {
+  padding: 3px 8px;
+  border: 1px solid hsl(var(--brand-teal) / 0.4);
+  border-radius: 5px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: hsl(var(--brand-teal));
+}
+
+.title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.sep {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+}
+
+.module {
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* --- transporte ---------------------------------------------------------- */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.play {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid hsl(var(--border));
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  cursor: pointer;
+  transition:
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.play svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.play:hover:not(:disabled) {
+  transform: scale(1.06);
+  box-shadow: 0 6px 18px hsl(var(--primary) / 0.34);
+}
+
+.play:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.play:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 3px;
+}
+
+.trackWrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.track {
+  position: relative;
+  height: 20px;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.track:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* cada capítulo é um segmento com a cor da sua região */
+.seg {
+  position: absolute;
+  top: 7px;
+  height: 6px;
+  padding-right: 2px;
+  background-clip: content-box;
+  background-color: rgb(var(--seg) / 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+  transition: background-color 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.seg:hover,
+.seg[data-on="true"] {
+  background-color: rgb(var(--seg) / 0.34);
+}
+
+.segFill {
+  display: block;
+  height: 100%;
+  background: rgb(var(--seg));
+  transform-origin: left center;
+}
+
+.head_ {
+  position: absolute;
+  top: 3px;
+  width: 2px;
+  height: 14px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: hsl(var(--foreground));
+  box-shadow: 0 0 0 3px hsl(var(--card));
+}
+
+.meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0 0;
+  font-size: 0.8125rem;
+}
+
+.chapter {
+  font-weight: 600;
+  color: rgb(var(--seg));
+}
+
+.time {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--foreground));
+  white-space: nowrap;
+}
+
+.dim {
+  color: hsl(var(--muted-foreground));
+}
+
+/* --- lista de capítulos -------------------------------------------------- */
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 2px 10px;
+  margin: 11px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid hsl(var(--border));
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  width: 100%;
+  padding: 5px 7px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 180ms ease-out;
+}
+
+.item:hover,
+.item[data-on="true"] {
+  background: rgb(var(--seg) / 0.1);
+}
+
+.item:focus-visible {
+  outline: 2px solid rgb(var(--seg));
+  outline-offset: -2px;
+}
+
+.itemNum {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  color: rgb(var(--seg));
+}
+
+.itemTitle {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  color: hsl(var(--foreground));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemTime {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--muted-foreground));
+}
+
+@media (max-width: 640px) {
+  .list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play,
+  .seg,
+  .item {
+    transition: none;
+  }
+  .play:hover:not(:disabled) {
+    transform: none;
+  }
+}

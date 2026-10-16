@@ -1,0 +1,92 @@
+/*
+ * Camada de tokens da v2.
+ *
+ * Só acrescenta o que falta. As cores semânticas (--background, --foreground,
+ * --primary, --border, --card, --brand-teal, --ring) já existem no globals.css
+ * do projeto, são as da paleta institucional cg-* e já trocam com o tema. O que
+ * não existia era escala de tipo, de espaço e de movimento, que é o que entra
+ * aqui. Tudo fica na classe .root, então herda para qualquer componente da v2
+ * sem tocar em nada do LMS.
+ */
+
+.root {
+  /* tipo */
+  --v2-fs-display: clamp(1.9rem, 3.1vw, 2.9rem);
+  --v2-fs-h2: clamp(1.45rem, 2.2vw, 2rem);
+  --v2-fs-h3: clamp(1.05rem, 1.4vw, 1.3rem);
+  --v2-fs-lead: clamp(0.9375rem, 1.05vw, 1.0625rem);
+  --v2-fs-body: 0.9375rem;
+  --v2-fs-sm: 0.8125rem;
+  --v2-fs-label: 0.6875rem;
+
+  /* espaço */
+  --v2-container: 1320px;
+  --v2-gutter: clamp(16px, 4vw, 40px);
+  --v2-section: clamp(56px, 8vh, 104px);
+
+  /* movimento */
+  --v2-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --v2-ease-snap: cubic-bezier(0.2, 0.9, 0.1, 1);
+  --v2-dur-1: 160ms;
+  --v2-dur-2: 240ms;
+  --v2-dur-3: 620ms;
+
+  /* forma */
+  --v2-radius: 10px;
+  --v2-radius-lg: 14px;
+
+  position: relative;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  /* fundo próprio: cobre o AmbientBackground do layout raiz, que não faz parte
+     desta linguagem visual */
+  background: hsl(var(--background));
+}
+
+/* barra do protótipo, some quando a v2 virar a página de verdade */
+.labBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  padding: 9px var(--v2-gutter);
+  border-bottom: 1px solid hsl(var(--border));
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--v2-fs-label);
+}
+
+.labTag {
+  padding: 2px 7px;
+  border: 1px solid hsl(var(--primary) / 0.4);
+  border-radius: 4px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: hsl(var(--primary));
+}
+
+.labText {
+  margin-right: auto;
+  color: hsl(var(--muted-foreground));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* o hero ocupa a primeira tela inteira */
+.heroSlot {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-section);
+  width: 100%;
+  max-width: var(--v2-container);
+  margin: 0 auto;
+  padding: var(--v2-section) var(--v2-gutter);
+}

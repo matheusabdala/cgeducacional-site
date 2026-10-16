@@ -1,0 +1,50 @@
+/* Lâmina de tecido neural atrás de todo o hero. */
+
+.backdrop {
+  --backdrop-ink: 28 48 122;
+  --backdrop-strength: 1.45; /* no claro o fundo some: precisa de mais tinta */
+
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+:global(.dark) .backdrop {
+  --backdrop-ink: 128 158 240;
+  --backdrop-strength: 1.2;
+}
+
+.canvas {
+  position: absolute;
+  /* folga nas bordas para a deriva não revelar o fim da lâmina */
+  inset: -6%;
+  width: 112%;
+  height: 112%;
+  animation: drift 64s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(-1.2%, -0.8%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(1.4%, 1.1%, 0) scale(1.04);
+  }
+}
+
+/* O conteúdo mora no miolo: a vinheta devolve contraste ali. */
+.vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 54% 48% at 50% 46%, hsl(var(--background) / 0.66), transparent 74%),
+    radial-gradient(ellipse 90% 70% at 50% 120%, hsl(var(--background)), transparent 60%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas {
+    animation: none;
+  }
+}

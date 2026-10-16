@@ -1,0 +1,353 @@
+/* Buscador do catálogo. CSS Module puro, usando os tokens da v2. */
+
+.finder {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--v2-fs-h2);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.022em;
+  color: hsl(var(--foreground));
+}
+
+.lede {
+  max-width: 52ch;
+  margin: 0;
+  font-size: var(--v2-fs-body);
+  line-height: 1.55;
+  color: hsl(var(--muted-foreground));
+  text-wrap: pretty;
+}
+
+/* --- busca e contagem ----------------------------------------------------- */
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+}
+
+.searchWrap {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  left: 13px;
+  width: 17px;
+  height: 17px;
+  margin-top: -8.5px;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+}
+
+.search {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px 0 38px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--v2-radius);
+  background: hsl(var(--card) / 0.74);
+  font: inherit;
+  font-size: var(--v2-fs-body);
+  color: hsl(var(--foreground));
+  transition:
+    border-color var(--v2-dur-2) var(--v2-ease),
+    background-color var(--v2-dur-2) var(--v2-ease);
+}
+
+.search::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+.search:hover {
+  border-color: hsl(var(--primary) / 0.4);
+}
+
+.search:focus {
+  outline: none;
+  border-color: hsl(var(--primary) / 0.7);
+  background: hsl(var(--card));
+}
+
+.search:focus-visible {
+  outline: 2px solid hsl(var(--ring) / 0.4);
+  outline-offset: 2px;
+}
+
+.count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 0;
+  font-size: var(--v2-fs-sm);
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+}
+
+.countNum {
+  font-size: 1.35rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--foreground));
+}
+
+.clear {
+  margin-left: 4px;
+  padding: 2px 8px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: var(--v2-fs-label);
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: color var(--v2-dur-1) var(--v2-ease), border-color var(--v2-dur-1) var(--v2-ease);
+}
+
+.clear:hover {
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--primary) / 0.5);
+}
+
+.clear:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* --- filtros -------------------------------------------------------------- */
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--v2-fs-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  background: hsl(var(--card) / 0.64);
+  font: inherit;
+  font-size: var(--v2-fs-sm);
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition:
+    border-color var(--v2-dur-2) var(--v2-ease),
+    background-color var(--v2-dur-2) var(--v2-ease),
+    color var(--v2-dur-2) var(--v2-ease);
+}
+
+.chip:hover {
+  border-color: hsl(var(--primary) / 0.45);
+  color: hsl(var(--foreground));
+}
+
+.chip[data-on="true"] {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--foreground));
+  font-weight: 600;
+}
+
+.chip:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.chipCount {
+  font-size: var(--v2-fs-label);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+/* --- resultados ----------------------------------------------------------- */
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  height: 100%;
+  padding: 12px 14px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--v2-radius);
+  background: hsl(var(--card) / 0.7);
+  text-decoration: none;
+  transition:
+    border-color var(--v2-dur-2) var(--v2-ease),
+    background-color var(--v2-dur-2) var(--v2-ease),
+    transform var(--v2-dur-2) var(--v2-ease);
+}
+
+.card:hover {
+  border-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--card));
+  transform: translateY(-2px);
+}
+
+.card:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.cardArea {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--v2-fs-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: hsl(var(--primary));
+}
+
+.cardTitle {
+  font-size: var(--v2-fs-sm);
+  font-weight: 600;
+  line-height: 1.3;
+  color: hsl(var(--foreground));
+  /* títulos do catálogo vêm em caixa alta e são longos */
+  text-transform: none;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  font-size: var(--v2-fs-label);
+  color: hsl(var(--muted-foreground));
+}
+
+.dot {
+  opacity: 0.5;
+}
+
+.draft {
+  padding: 1px 6px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  color: hsl(var(--muted-foreground));
+}
+
+.card[data-draft="true"] {
+  opacity: 0.72;
+}
+
+.more {
+  align-self: flex-start;
+  padding: 9px 17px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--v2-radius);
+  background: hsl(var(--card) / 0.7);
+  font: inherit;
+  font-size: var(--v2-fs-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition:
+    border-color var(--v2-dur-2) var(--v2-ease),
+    transform var(--v2-dur-2) var(--v2-ease);
+}
+
+.more:hover {
+  border-color: hsl(var(--primary) / 0.5);
+  transform: translateY(-2px);
+}
+
+.more:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.empty,
+.note {
+  margin: 0;
+  font-size: var(--v2-fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+
+.note {
+  padding-top: 4px;
+  border-top: 1px solid hsl(var(--border));
+  font-size: var(--v2-fs-label);
+}
+
+@media (min-width: 720px) {
+  .filters {
+    flex-direction: row;
+    gap: 28px;
+  }
+  .group:first-child {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search,
+  .chip,
+  .card,
+  .more,
+  .clear {
+    transition: none;
+  }
+  .card:hover,
+  .more:hover {
+    transform: none;
+  }
+}
