@@ -1,0 +1,105 @@
+/* Faixas e cabeçalhos da v2. */
+
+.section {
+  padding-block: var(--v2-section);
+}
+
+.section[data-tight="true"] {
+  padding-block: calc(var(--v2-section) / 2);
+}
+
+.section[data-surface="base"] {
+  background: hsl(var(--background));
+}
+
+.section[data-surface="sunken"] {
+  background: hsl(var(--muted) / 0.45);
+  border-block: 1px solid hsl(var(--border));
+}
+
+/* Institucional. Usa a cor da marca e inverte os tokens de texto lá dentro,
+   para os componentes filhos não precisarem saber que estão no escuro. */
+.section[data-surface="inverted"] {
+  --foreground: 0 0% 100%;
+  --muted-foreground: 214 32% 82%;
+  --border: 226 40% 42%;
+  --card: 226 55% 22%;
+
+  background: linear-gradient(160deg, hsl(226 64% 26%), hsl(226 70% 18%));
+  color: hsl(var(--foreground));
+}
+
+:global(.dark) .section[data-surface="inverted"] {
+  background: linear-gradient(160deg, hsl(226 42% 17%), hsl(228 40% 11%));
+  --border: 226 28% 34%;
+  --card: 226 32% 18%;
+}
+
+.inner {
+  width: 100%;
+  max-width: var(--v2-container);
+  margin: 0 auto;
+  padding-inline: var(--v2-gutter);
+}
+
+/* --- cabeçalho ------------------------------------------------------------ */
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: clamp(20px, 2.6vw, 34px);
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--v2-fs-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: hsl(var(--primary));
+}
+
+.section[data-surface="inverted"] .eyebrow {
+  color: hsl(var(--brand-teal));
+}
+
+.title {
+  max-width: 22ch;
+  margin: 0;
+  font-size: var(--v2-fs-h2);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+  color: hsl(var(--foreground));
+}
+
+.lede {
+  max-width: 58ch;
+  margin: 0;
+  font-size: var(--v2-fs-lead);
+  line-height: 1.55;
+  color: hsl(var(--muted-foreground));
+  text-wrap: pretty;
+}
+
+.headAside {
+  flex: none;
+  padding-bottom: 3px;
+}
+
+@media (max-width: 680px) {
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

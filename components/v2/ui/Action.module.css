@@ -1,0 +1,122 @@
+/* Hierarquia de ação da v2. */
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 20px;
+  border: 1px solid transparent;
+  border-radius: var(--v2-radius);
+  font: inherit;
+  font-size: var(--v2-fs-body);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform var(--v2-dur-2) var(--v2-ease),
+    box-shadow var(--v2-dur-2) var(--v2-ease),
+    background-color var(--v2-dur-2) var(--v2-ease),
+    border-color var(--v2-dur-2) var(--v2-ease);
+}
+
+.primary[data-size="lg"],
+.secondary[data-size="lg"] {
+  height: 48px;
+  padding: 0 26px;
+  font-size: var(--v2-fs-lead);
+}
+
+.primary {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  box-shadow: 0 1px 2px hsl(var(--primary) / 0.3);
+}
+
+.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px hsl(var(--primary) / 0.3);
+}
+
+/* Na faixa institucional o azul do botão sumiria no azul do fundo. */
+:global([data-surface="inverted"]) .primary {
+  background: hsl(0 0% 100%);
+  color: hsl(226 64% 26%);
+  box-shadow: 0 1px 2px hsl(0 0% 0% / 0.2);
+}
+
+:global([data-surface="inverted"]) .primary:hover {
+  box-shadow: 0 8px 24px hsl(0 0% 0% / 0.28);
+}
+
+.secondary {
+  border-color: hsl(var(--border));
+  background: hsl(var(--card) / 0.7);
+  color: hsl(var(--foreground));
+}
+
+.secondary:hover {
+  transform: translateY(-2px);
+  border-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--card));
+}
+
+.quiet {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: var(--v2-fs-body);
+  font-weight: 600;
+  color: hsl(var(--primary));
+  text-decoration: none;
+  cursor: pointer;
+}
+
+:global([data-surface="inverted"]) .quiet {
+  color: hsl(var(--brand-teal));
+}
+
+.arrow {
+  width: 15px;
+  height: 15px;
+  transition: transform var(--v2-dur-2) var(--v2-ease);
+}
+
+.quiet:hover .arrow {
+  transform: translateX(3px);
+}
+
+.primary:focus-visible,
+.secondary:focus-visible,
+.quiet:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 3px;
+}
+
+:global([data-surface="inverted"]) .primary:focus-visible,
+:global([data-surface="inverted"]) .secondary:focus-visible,
+:global([data-surface="inverted"]) .quiet:focus-visible {
+  outline-color: hsl(0 0% 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary,
+  .secondary,
+  .arrow {
+    transition: none;
+  }
+  .primary:hover,
+  .secondary:hover {
+    transform: none;
+  }
+  .quiet:hover .arrow {
+    transform: none;
+  }
+}

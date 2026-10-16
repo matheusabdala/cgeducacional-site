@@ -41,6 +41,11 @@ export type FinderCourse = {
   live: boolean;
 };
 
+export type FeaturedCourse = FinderCourse & {
+  description: string;
+  duration: string | null;
+};
+
 /**
  * Correção estreita e auditável de categoria.
  *

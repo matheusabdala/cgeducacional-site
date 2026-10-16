@@ -1,6 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
-import { resolveArea, type FinderCourse, type LevelKey } from "./areas";
+import { resolveArea, type FeaturedCourse, type FinderCourse, type LevelKey } from "./areas";
 
 /**
  * Catálogo para o buscador da v2.
@@ -35,6 +35,39 @@ export async function getFinderCourses(
     area: resolveArea(String(r.category), r.title),
     level: String(r.level) as LevelKey,
     hours: r.workloadHours,
+    live: r.published,
+  }));
+}
+
+/**
+ * Os poucos cursos que a home destaca. Payload maior (descrição, preço), então
+ * é consulta à parte: no buscador isso multiplicaria por 265 à toa.
+ */
+export async function getFeaturedCourses(limit = 4): Promise<FeaturedCourse[]> {
+  const rows = await prisma.course.findMany({
+    where: { published: true },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      category: true,
+      level: true,
+      workloadHours: true,
+      durationLabel: true,
+      published: true,
+    },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    description: r.description,
+    area: resolveArea(String(r.category), r.title),
+    level: String(r.level) as LevelKey,
+    hours: r.workloadHours,
+    duration: r.durationLabel,
     live: r.published,
   }));
 }

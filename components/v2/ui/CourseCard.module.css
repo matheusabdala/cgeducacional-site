@@ -1,0 +1,124 @@
+/* Card de curso da v2. Um formato só, em qualquer seção. */
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--v2-radius-lg);
+  background: hsl(var(--card));
+  text-decoration: none;
+  transition:
+    border-color var(--v2-dur-2) var(--v2-ease),
+    box-shadow var(--v2-dur-2) var(--v2-ease),
+    transform var(--v2-dur-2) var(--v2-ease);
+}
+
+a.card:hover {
+  transform: translateY(-3px);
+  border-color: hsl(var(--primary) / 0.45);
+  box-shadow: 0 10px 30px hsl(226 64% 26% / 0.1);
+}
+
+a.card:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/*
+ * Capa. No site antigo eram quatro gradientes saturados diferentes, um deles
+ * laranja, que não existe na marca. Aqui é uma faixa só, variando dentro da
+ * escala institucional por área.
+ */
+.cover {
+  display: flex;
+  align-items: flex-end;
+  height: 72px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgb(var(--cover)), rgb(var(--cover) / 0.78));
+}
+
+.card[data-area="neurociencia"] { --cover: 29 61 165; }
+.card[data-area="pedagogia"] { --cover: 42 77 192; }
+.card[data-area="inclusao"] { --cover: 13 118 107; }
+.card[data-area="gestao"] { --cover: 53 93 222; }
+.card[data-area="seguranca_trabalho"] { --cover: 26 61 120; }
+.card[data-area="seguranca_publica"] { --cover: 33 70 150; }
+.card[data-area="musica"] { --cover: 17 148 134; }
+.card[data-area="artes_visuais"] { --cover: 71 109 235; }
+.card[data-area="letras"] { --cover: 10 92 85; }
+.card[data-area="historia"] { --cover: 40 72 160; }
+.card[data-area="hotelaria"] { --cover: 22 130 120; }
+.card[data-area="outros"] { --cover: 88 123 238; }
+
+.coverLabel {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--v2-fs-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(0 0% 100% / 0.92);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 7px;
+  padding: 14px;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--v2-fs-h3);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.012em;
+  color: hsl(var(--foreground));
+}
+
+.desc {
+  flex: 1;
+  margin: 0;
+  font-size: var(--v2-fs-sm);
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-top: 4px;
+  padding-top: 11px;
+  border-top: 1px solid hsl(var(--border));
+  font-size: var(--v2-fs-label);
+  color: hsl(var(--muted-foreground));
+}
+
+.dot {
+  opacity: 0.5;
+}
+
+.tag {
+  margin-left: auto;
+  padding: 2px 8px;
+  border: 1px dashed hsl(var(--border));
+  border-radius: 999px;
+  color: hsl(var(--muted-foreground));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+  a.card:hover {
+    transform: none;
+  }
+}
