@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CourseCover } from '@/components/ui/course-cover';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
+import { SALES_OPEN, SALES_SOON, SALES_SOON_NOTE } from '@/lib/sales';
 import { 
   Clock, 
   Book, 
@@ -248,17 +249,33 @@ export const CourseDetailsPage: React.FC<CourseDetailsPageProps> = ({ course }) 
                       </div>
                    </div>
 
-                   <Button
-                      size="lg"
-                      variant="glow"
-                      className="w-full mb-3 text-lg"
-                      asChild
-                   >
-                      <Link href={`/checkout/${course.id}`}>Comprar Agora</Link>
-                   </Button>
-                   <p className="text-xs text-center text-muted-foreground mb-6">
-                     Garantia de 7 dias ou seu dinheiro de volta.
-                   </p>
+                   {SALES_OPEN ? (
+                     <>
+                       <Button
+                          size="lg"
+                          variant="glow"
+                          className="w-full mb-3 text-lg"
+                          asChild
+                       >
+                          <Link href={`/checkout/${course.id}`}>Comprar Agora</Link>
+                       </Button>
+                       <p className="text-xs text-center text-muted-foreground mb-6">
+                         Garantia de 7 dias ou seu dinheiro de volta.
+                       </p>
+                     </>
+                   ) : (
+                     <>
+                       <div
+                          className="mb-3 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-secondary/40 px-4 py-3 text-lg font-semibold text-muted-foreground"
+                          aria-live="polite"
+                       >
+                          <Clock size={18} /> {SALES_SOON}
+                       </div>
+                       <p className="text-xs text-center text-muted-foreground mb-6">
+                         {SALES_SOON_NOTE}
+                       </p>
+                     </>
+                   )}
 
                    <div className="space-y-4 pt-6 border-t border-border">
                      <div className="flex items-center justify-between text-sm">

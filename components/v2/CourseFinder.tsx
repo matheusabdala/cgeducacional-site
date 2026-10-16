@@ -3,6 +3,7 @@
 import { useDeferredValue, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { AREAS, LEVELS, type AreaKey, type FinderCourse } from "@/lib/v2/areas";
+import { SALES_OPEN, SALES_SOON } from "@/lib/sales";
 import styles from "./CourseFinder.module.css";
 
 /**
@@ -194,9 +195,11 @@ export function CourseFinder({ courses }: { courses: FinderCourse[] }) {
       ) : (
         <>
           <ul className={styles.list}>
-            {shown.map((c) => (
-              <li key={c.id}>
-                <Link href={`/cursos/${c.id}`} className={styles.card} data-draft={!c.live}>
+            {shown.map((c) => {
+              // Curso não publicado não tem página: `/cursos/[id]` busca só os
+              // publicados e devolve 404. Então o card dele não é link.
+              const body = (
+                <>
                   <span className={styles.cardArea}>{AREAS[c.area]}</span>
                   <span className={styles.cardTitle}>{c.title}</span>
                   <span className={styles.cardMeta}>
@@ -205,11 +208,28 @@ export function CourseFinder({ courses }: { courses: FinderCourse[] }) {
                       ·
                     </span>
                     {LEVELS[c.level]}
-                    {!c.live && <span className={styles.draft}>em preparação</span>}
+                    {!c.live ? (
+                      <span className={styles.tag}>Em preparação</span>
+                    ) : (
+                      !SALES_OPEN && <span className={styles.tag}>{SALES_SOON}</span>
+                    )}
                   </span>
-                </Link>
-              </li>
-            ))}
+                </>
+              );
+              return (
+                <li key={c.id}>
+                  {c.live ? (
+                    <Link href={`/cursos/${c.id}`} className={styles.card}>
+                      {body}
+                    </Link>
+                  ) : (
+                    <div className={styles.card} data-draft="true">
+                      {body}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
 
           {results.length > shown.length && (

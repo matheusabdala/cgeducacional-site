@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CourseCover } from "@/components/ui/course-cover";
 import { InitialsAvatar } from "@/components/ui/initials-avatar";
+import { SALES_OPEN, SALES_SOON } from "@/lib/sales";
 
 interface CourseCardProps {
   course: Course;
@@ -67,12 +68,18 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         </div>
 
         <div className="mt-auto flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-xs text-muted-foreground">Por apenas</span>
-            <span className="text-lg font-bold text-teal">
-              R$ {course.price.toFixed(2).replace(".", ",")}
+          {SALES_OPEN ? (
+            <div className="flex flex-col">
+              <span className="text-xs text-muted-foreground">Por apenas</span>
+              <span className="text-lg font-bold text-teal">
+                R$ {course.price.toFixed(2).replace(".", ",")}
+              </span>
+            </div>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground">
+              <Clock size={12} /> {SALES_SOON}
             </span>
-          </div>
+          )}
           <Button size="sm" variant="outline" onClick={() => onViewDetails(course)}>
             Ver Detalhes
           </Button>

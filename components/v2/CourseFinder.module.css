@@ -278,9 +278,9 @@
   opacity: 0.5;
 }
 
-.draft {
-  padding: 1px 6px;
-  border: 1px solid hsl(var(--border));
+.tag {
+  padding: 1px 7px;
+  border: 1px dashed hsl(var(--border));
   border-radius: 999px;
   color: hsl(var(--muted-foreground));
 }

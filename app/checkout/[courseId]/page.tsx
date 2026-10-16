@@ -7,6 +7,7 @@ import { publicEnv } from "@/lib/env";
 import { computeAmount } from "@/lib/pricing";
 import { CourseCategory } from "@/types";
 import { CheckoutClient } from "@/components/checkout/checkout-client";
+import { SALES_OPEN } from "@/lib/sales";
 import { initiateOrder } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,12 @@ export default async function CheckoutPage({
   params: Promise<{ courseId: string }>;
 }) {
   const { courseId } = await params;
+
+  // Vendas fechadas: volta para a página do curso antes de pedir login ou
+  // abrir pedido. A trava precisa estar aqui, e não só no botão, senão o
+  // checkout continua acessível por link direto.
+  if (!SALES_OPEN) redirect(`/cursos/${courseId}`);
+
   const user = await requireUser(`/checkout/${courseId}`);
 
   const course = await prisma.course.findUnique({
