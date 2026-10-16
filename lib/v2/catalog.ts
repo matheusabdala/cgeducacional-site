@@ -26,7 +26,9 @@ export async function getFinderCourses(
       workloadHours: true,
       published: true,
     },
-    orderBy: { title: "asc" },
+    // publicado primeiro: senão os rascunhos, que são a maioria esmagadora,
+    // afogam os poucos cursos que já dá para ver
+    orderBy: [{ published: "desc" }, { title: "asc" }],
   });
 
   return rows.map((r) => ({
